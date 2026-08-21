@@ -1,0 +1,17 @@
+/* Bootstrap-based app styling
+   Tailwind and Vite are intentionally not required in this project.
+*/
+
+:root {
+    color-scheme: light;
+}
+
+body {
+    background: #f3f5f8;
+    color: #0b2545;
+    font-family: Inter, system-ui, -apple-system, sans-serif;
+}
+
+img {
+    max-width: 100%;
+}
