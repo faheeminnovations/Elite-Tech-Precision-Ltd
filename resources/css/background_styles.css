@@ -1,0 +1,29 @@
+/* Background Styles for Elite Tech Precision Ltd */
+
+body {
+    background-image: url('/images/background.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-color: #0b2545; /* Fallback color */
+}
+
+/* Optional: Add overlay to ensure text readability */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(11, 37, 69, 0.85); /* Dark overlay for better text readability */
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* Ensure content maintains proper contrast */
+#shell {
+    position: relative;
+    z-index: 1;
+}

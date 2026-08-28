@@ -3,14 +3,24 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CustomerRequest;
+use App\Mail\StatusUpdateMail;
 use App\Models\Contract;
 use App\Models\Customer;
+use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
 class CustomerController extends Controller
 {
+    protected NotificationService $notificationService;
+
+    public function __construct(NotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
+
     public function index(Request $request): View
     {
         $filters = $request->only(['search', 'status', 'category', 'region']);
@@ -46,7 +56,10 @@ class CustomerController extends Controller
     {
         $validated = $request->validated();
 
-        Customer::create($validated);
+        $customer = Customer::create($validated);
+
+        // Send email notification for customer creation
+        $this->notificationService->sendCustomerCreated($customer, auth()->user());
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -73,10 +86,21 @@ class CustomerController extends Controller
     {
         $validated = $request->validated();
 
+        $oldStatus = $customer->status;
+        $newStatus = $validated['status'] ?? $customer->status;
+
         $customer->update($validated);
 
         if ($customer->wasChanged('region')) {
             Contract::where('customer_name', $customer->name)->update(['area' => $customer->region]);
+        }
+
+        // Send email notification for customer update
+        $this->notificationService->sendCustomerUpdated($customer, auth()->user());
+
+        // Send email notification if status changed
+        if ($oldStatus !== $newStatus) {
+            $this->notificationService->sendCustomerStatusChanged($customer, $oldStatus, $newStatus, auth()->user());
         }
 
         if ($request->expectsJson()) {
@@ -92,7 +116,15 @@ class CustomerController extends Controller
 
     public function destroy(Customer $customer): RedirectResponse
     {
+        $customerData = (object) [
+            'name' => $customer->name,
+            'status' => $customer->status
+        ];
+
         $customer->delete();
+
+        // Send email notification for customer deletion
+        $this->notificationService->sendCustomerDeleted($customerData, auth()->user());
 
         return redirect()->route('customers.index')->with('success', 'Customer deleted successfully.');
     }

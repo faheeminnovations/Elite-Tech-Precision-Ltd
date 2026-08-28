@@ -97,6 +97,31 @@
 </div>
 
 <script>
+// Real-time search functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.querySelector('input[name="search"]');
+    const filterForm = document.querySelector('form');
+
+    if (searchInput && filterForm) {
+        let timeout = null;
+
+        searchInput.addEventListener('input', function() {
+            clearTimeout(timeout);
+            timeout = setTimeout(function() {
+                filterForm.submit();
+            }, 500); // Wait 500ms after user stops typing
+        });
+    }
+
+    // Auto-submit on dropdown changes
+    const dropdowns = filterForm.querySelectorAll('select');
+    dropdowns.forEach(function(dropdown) {
+        dropdown.addEventListener('change', function() {
+            filterForm.submit();
+        });
+    });
+});
+
 function deleteService(url, jobRef) {
     if (typeof Swal !== 'undefined') {
         Swal.fire({

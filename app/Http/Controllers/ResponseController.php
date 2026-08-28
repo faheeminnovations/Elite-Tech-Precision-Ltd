@@ -2,14 +2,24 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\ResponseStatusMail;
 use App\Models\Customer;
 use App\Models\Response;
+use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
 class ResponseController extends Controller
 {
+    protected NotificationService $notificationService;
+
+    public function __construct(NotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
+
     public function index(Request $request): View
     {
         $filters = $request->only(['search', 'response', 'date_from', 'date_to']);
@@ -37,7 +47,10 @@ class ResponseController extends Controller
     {
         $validated = $this->validateResponse($request);
 
-        Response::create($validated);
+        $response = Response::create($validated);
+
+        // Send email notification for response creation
+        $this->notificationService->sendResponseCreated($response, auth()->user());
 
         return $this->redirectAfterSave($request, 'Response recorded successfully.');
     }
@@ -59,14 +72,34 @@ class ResponseController extends Controller
     {
         $validated = $this->validateResponse($request);
 
+        $oldStatus = $response->response;
+        $newStatus = $validated['response'] ?? $response->response;
+
         $response->update($validated);
+
+        // Send email notification for response update
+        $this->notificationService->sendResponseUpdated($response, auth()->user());
+
+        // Send email notification if response status changed
+        if ($oldStatus !== $newStatus) {
+            $this->notificationService->sendResponseStatusChanged($response, $oldStatus, $newStatus, auth()->user());
+        }
 
         return redirect()->route('responses.index')->with('success', 'Response updated successfully.');
     }
 
     public function destroy(Response $response): RedirectResponse
     {
+        $responseData = (object) [
+            'job_ref' => $response->job_ref,
+            'customer_name' => $response->customer_name,
+            'status' => $response->response
+        ];
+
         $response->delete();
+
+        // Send email notification for response deletion
+        $this->notificationService->sendResponseDeleted($responseData, auth()->user());
 
         return redirect()->route('responses.index')->with('success', 'Response deleted successfully.');
     }

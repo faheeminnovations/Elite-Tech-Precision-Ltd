@@ -48,10 +48,6 @@
         <a href="{{ route('customers.create') }}" class="btn btn-ef-primary"><i class="bi bi-plus-lg"></i> Add Customer</a>
     </div>
 
-    @if(session('success'))
-        <div class="alert alert-success mb-3" role="alert">{{ session('success') }}</div>
-    @endif
-
     <div class="card p-3">
         <x-filter-form
             :action="route('customers.index')"

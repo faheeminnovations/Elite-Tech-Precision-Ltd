@@ -30,7 +30,7 @@
         body {
             margin:0;
             font-family:var(--body);
-            background: url('https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80') no-repeat center center fixed;
+            background: url('/images/background.jpg') no-repeat center center fixed;
             background-size: cover;
             position: relative;
             color:var(--ink);

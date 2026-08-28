@@ -3,14 +3,24 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ContractRequest;
+use App\Mail\ContractStatusMail;
 use App\Models\Contract;
 use App\Models\Customer;
+use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
 class ContractController extends Controller
 {
+    protected NotificationService $notificationService;
+
+    public function __construct(NotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
+
     public function index(Request $request): View
     {
         $filters = $request->only(['search', 'status', 'area', 'frequency', 'date_from', 'date_to']);
@@ -57,7 +67,10 @@ class ContractController extends Controller
         $validated = $request->validated();
         $validated['area'] = $this->resolveArea($validated['customer_name'], $validated['area'] ?? null);
 
-        Contract::create($validated);
+        $contract = Contract::create($validated);
+
+        // Send email notification for contract creation
+        $this->notificationService->sendContractCreated($contract, auth()->user());
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -89,7 +102,18 @@ class ContractController extends Controller
         $validated = $request->validated();
         $validated['area'] = $this->resolveArea($validated['customer_name'], $validated['area'] ?? null);
 
+        $oldStatus = $contract->status;
+        $newStatus = $validated['status'] ?? $contract->status;
+
         $contract->update($validated);
+
+        // Send email notification for contract update
+        $this->notificationService->sendContractUpdated($contract, auth()->user());
+
+        // Send email notification if status changed
+        if ($oldStatus !== $newStatus) {
+            $this->notificationService->sendContractStatusChanged($contract, $oldStatus, $newStatus, auth()->user());
+        }
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -104,7 +128,16 @@ class ContractController extends Controller
 
     public function destroy(Contract $contract): RedirectResponse
     {
+        $contractData = (object) [
+            'job_ref' => $contract->job_ref,
+            'customer_name' => $contract->customer_name ?? 'Unknown',
+            'status' => $contract->status
+        ];
+
         $contract->delete();
+
+        // Send email notification for contract deletion
+        $this->notificationService->sendContractDeleted($contractData, auth()->user());
 
         return redirect()->route('contracts.index')->with('success', 'Contract deleted successfully.');
     }

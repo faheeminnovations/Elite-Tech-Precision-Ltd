@@ -21,8 +21,20 @@ class DatabaseSeeder extends Seeder
             [
                 'name' => 'Awais Ho',
                 'password' => bcrypt('admin123'),
+                'status' => 'active',
             ]
         );
         $admin->syncRoles('admin');
+
+        // Engineer user
+        $engineer = User::firstOrCreate(
+            ['email' => 'engineer@elitetechprecision.co.uk'],
+            [
+                'name' => 'Engineer User',
+                'password' => bcrypt('engineer123'),
+                'status' => 'active',
+            ]
+        );
+        $engineer->syncRoles('engineer');
     }
 }

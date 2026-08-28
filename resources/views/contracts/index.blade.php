@@ -48,10 +48,6 @@
         <a href="{{ route('contracts.create') }}" class="btn btn-ef-primary"><i class="bi bi-plus-lg"></i> New Contract</a>
     </div>
 
-    @if(session('success'))
-        <div class="alert alert-success mb-3" role="alert">{{ session('success') }}</div>
-    @endif
-
     <div class="card p-3">
         <x-status-tabs :tabs="$statusTabs" :preserve="['search', 'area', 'frequency', 'date_from', 'date_to']" />
 

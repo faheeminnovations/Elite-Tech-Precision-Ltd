@@ -11,6 +11,7 @@ use App\Http\Controllers\ExportController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\EngineerActivityController;
+use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -55,9 +56,10 @@ Route::middleware(['auth', 'role:admin|engineer'])->group(function () {
 });
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('/settings', function () {
-        return view('settings');
-    })->name('settings');
+    Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
+    Route::post('/settings', [SettingsController::class, 'update'])->name('settings.update');
+    Route::get('/settings/email', [SettingsController::class, 'getEmailSettings'])->name('settings.email');
+    Route::put('/settings/email/{emailType}', [SettingsController::class, 'updateEmailSetting'])->name('settings.email.update');
 
     Route::resource('users', UserController::class);
 

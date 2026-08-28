@@ -3,17 +3,23 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ServiceRequest;
+use App\Mail\StatusUpdateMail;
 use App\Models\Customer;
 use App\Models\Service;
 use App\Models\User;
 use App\Services\ActivityLogger;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 class ServiceController extends Controller
 {
-    public function __construct()
+    protected NotificationService $notificationService;
+
+    public function __construct(NotificationService $notificationService)
     {
+        $this->notificationService = $notificationService;
         $this->middleware('auth');
     }
 
@@ -81,6 +87,9 @@ class ServiceController extends Controller
             $service,
         );
 
+        // Send email notification for service creation
+        $this->notificationService->sendServiceCreated($service, auth()->user());
+
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
@@ -113,6 +122,9 @@ class ServiceController extends Controller
     {
         $validated = $request->validated();
 
+        $oldStatus = $service->status;
+        $newStatus = $validated['status'] ?? $service->status;
+
         $validated = $this->applyEngineerAssignment($validated);
         $validated['updated_by'] = Auth::id();
 
@@ -124,6 +136,21 @@ class ServiceController extends Controller
             "Updated service job {$service->job_ref}",
             $service,
         );
+
+        // Send email notification for service update
+        $this->notificationService->sendServiceUpdated($service, auth()->user());
+
+        // Send email notification if status changed (using the specific status change method)
+        if ($oldStatus !== $newStatus) {
+            $this->notificationService->sendStatusUpdate(
+                'Service',
+                $service->job_ref,
+                $oldStatus,
+                $newStatus,
+                'Status Update',
+                auth()->user()
+            );
+        }
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -139,14 +166,21 @@ class ServiceController extends Controller
 
     public function destroy(Service $service)
     {
-        $jobRef = $service->job_ref;
+        $serviceData = (object) [
+            'job_ref' => $service->job_ref,
+            'status' => $service->status
+        ];
+
         $service->delete();
 
         ActivityLogger::log(
             'service.deleted',
             'services',
-            "Deleted service job {$jobRef}",
+            "Deleted service job {$serviceData->job_ref}",
         );
+
+        // Send email notification for service deletion
+        $this->notificationService->sendServiceDeleted($serviceData, auth()->user());
 
         return redirect()->route('services.index')
             ->with('success', 'Service record deleted successfully.');
