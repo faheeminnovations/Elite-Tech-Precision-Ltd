@@ -53,10 +53,11 @@ class TestEmailCommand extends Command
             $this->info('MAIL_HOST=195.35.39.91');
             $this->info('MAIL_PORT=65002');
             $this->info('MAIL_USERNAME=u249713597');
-            $this->info('MAIL_PASSWORD=Rac@909090');
+            $this->info('MAIL_PASSWORD=d8*wTI0ND');
             $this->info('MAIL_ENCRYPTION=null');
-            $this->info('MAIL_FROM_ADDRESS=eliteflow@playwithlegit.com');
+            $this->info('MAIL_FROM_ADDRESS=support@devfaheem.com');
             $this->info('MAIL_FROM_NAME="EliteFlow - Elite Tech Precision Ltd"');
+            $this->info('INTERNAL_REMINDER_EMAIL=support@devfaheem.com');
 
             return 1;
         }

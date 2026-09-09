@@ -86,6 +86,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Internal Reminder Email
+    |--------------------------------------------------------------------------
+    |
+    | This email address will receive internal notifications and reminders
+    | for various system events like PPMs, customer responses, etc.
+    |
+    */
+
+    'internal_reminder_email' => env('INTERNAL_REMINDER_EMAIL', 'support@devfaheem.com'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Encryption Key
     |--------------------------------------------------------------------------
     |
