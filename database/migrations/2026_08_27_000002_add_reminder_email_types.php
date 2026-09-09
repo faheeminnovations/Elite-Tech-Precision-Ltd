@@ -13,7 +13,7 @@ return new class extends Migration
     public function up(): void
     {
         // Insert reminder email notification types
-        DB::table('email_notification_settings')->insert([
+        DB::table('email_notification_settings')->insertOrIgnore([
             [
                 'email_type' => 'customer_ppm_reminder',
                 'display_name' => 'Customer PPM Reminder',
