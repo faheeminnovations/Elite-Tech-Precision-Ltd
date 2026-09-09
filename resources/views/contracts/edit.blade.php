@@ -131,6 +131,7 @@
                                 <i class="bi bi-plus-circle"></i> Add
                             </button>
                         </div>
+                        <div id="customer_name_error" class="text-danger mt-1" style="display: none; font-size: 12px;">Please select a customer name to proceed.</div>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Service Area</label>
@@ -268,9 +269,12 @@
             // Validate current step before proceeding
             if (current === 1) {
                 const customerName = document.querySelector('[name="customer_name"]').value;
+                const errorDiv = document.getElementById('customer_name_error');
                 if (!customerName) {
-                    alert('Please select a customer name to proceed.');
+                    errorDiv.style.display = 'block';
                     return;
+                } else {
+                    errorDiv.style.display = 'none';
                 }
             }
             

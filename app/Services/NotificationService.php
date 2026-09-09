@@ -62,8 +62,8 @@ class NotificationService
             return;
         }
 
-        // Always use config email for now since session settings might not be configured
-        $recipientEmail = config('mail.from.address');
+        // Send to customer's email if available, otherwise fallback to internal email
+        $recipientEmail = $contract->customer_email ?? config('mail.from.address');
         
         Mail::to($recipientEmail)->send(new ContractStatusMail(
             $contract,
@@ -83,8 +83,8 @@ class NotificationService
             return;
         }
 
-        // Always use config email for now since session settings might not be configured
-        $recipientEmail = config('mail.from.address');
+        // Send to customer's email if available, otherwise fallback to internal email
+        $recipientEmail = $contract->customer_email ?? config('mail.from.address');
         
         Mail::to($recipientEmail)->send(new ContractStatusMail(
             $contract,
@@ -125,8 +125,8 @@ class NotificationService
             return;
         }
 
-        // Always use config email for now since session settings might not be configured
-        $recipientEmail = config('mail.from.address');
+        // Send to customer's email if available, otherwise fallback to internal email
+        $recipientEmail = $contract->customer_email ?? config('mail.from.address');
         
         Mail::to($recipientEmail)->send(new ContractStatusMail(
             $contract,
@@ -146,8 +146,8 @@ class NotificationService
             return;
         }
 
-        // Always use config email for now since session settings might not be configured
-        $recipientEmail = config('mail.from.address');
+        // Send to customer's email if available, otherwise fallback to internal email
+        $recipientEmail = $customer->email ?? config('mail.from.address');
         
         Mail::to($recipientEmail)->send(new StatusUpdateMail(
             'Customer',
@@ -168,8 +168,8 @@ class NotificationService
             return;
         }
 
-        // Always use config email for now since session settings might not be configured
-        $recipientEmail = config('mail.from.address');
+        // Send to customer's email if available, otherwise fallback to internal email
+        $recipientEmail = $customer->email ?? config('mail.from.address');
         
         Mail::to($recipientEmail)->send(new StatusUpdateMail(
             'Customer',
@@ -212,8 +212,8 @@ class NotificationService
             return;
         }
 
-        // Always use config email for now since session settings might not be configured
-        $recipientEmail = config('mail.from.address');
+        // Send to customer's email if available, otherwise fallback to internal email
+        $recipientEmail = $customer->email ?? config('mail.from.address');
         
         Mail::to($recipientEmail)->send(new StatusUpdateMail(
             'Customer',
