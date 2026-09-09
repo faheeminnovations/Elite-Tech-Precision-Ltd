@@ -67,6 +67,10 @@ class ContractController extends Controller
         $validated = $request->validated();
         $validated['area'] = $this->resolveArea($validated['customer_name'], $validated['area'] ?? null);
 
+        // Set default values for fields that have database constraints but are optional in form
+        $validated['frequency'] = $validated['frequency'] ?? '6 monthly';
+        $validated['status'] = $validated['status'] ?? 'upcoming';
+
         $contract = Contract::create($validated);
 
         // Send email notification for contract creation
@@ -101,6 +105,14 @@ class ContractController extends Controller
     {
         $validated = $request->validated();
         $validated['area'] = $this->resolveArea($validated['customer_name'], $validated['area'] ?? null);
+
+        // Set default values for fields that have database constraints but are optional in form
+        if (!isset($validated['frequency']) || $validated['frequency'] === '') {
+            $validated['frequency'] = $contract->frequency ?? '6 monthly';
+        }
+        if (!isset($validated['status']) || $validated['status'] === '') {
+            $validated['status'] = $contract->status ?? 'upcoming';
+        }
 
         $oldStatus = $contract->status;
         $newStatus = $validated['status'] ?? $contract->status;

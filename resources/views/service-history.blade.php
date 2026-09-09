@@ -5,7 +5,7 @@
                 <h2>Completed PPM Records & Service History</h2>
                 <div class="section-sub">Permanent record of every completed visit, job sheet and recommendation</div>
             </div>
-            <a href="{{ route('services.create') }}" class="btn btn-ef-primary"><i class="bi bi-check2-circle me-1"></i> Log Completed PPM</a>
+            <a href="{{ route('services.create') }}" class="btn btn-ef-primary"><i class="bi bi-check2-circle me-1"></i> Contract & PPM Service</a>
         </div>
 
         <x-filter-form

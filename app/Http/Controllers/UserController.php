@@ -69,6 +69,51 @@ class UserController extends Controller
             ->with('success', 'User account created successfully.');
     }
 
+    public function quickCreate(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'name' => ['required', 'string', 'max:255'],
+                'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+                'password' => ['required', 'min:8'],
+                'role' => ['required', Rule::in(['admin', 'engineer', 'manager'])],
+                'status' => ['required', Rule::in(array_keys(User::STATUSES))],
+            ]);
+
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'status' => $validated['status'],
+            ]);
+
+            $user->syncRoles($validated['role']);
+
+            ActivityLogger::log(
+                'user.created',
+                'users',
+                "Created {$validated['role']} account for {$user->name}",
+                $user,
+                ['role' => $validated['role']],
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Engineer added successfully.',
+                'engineer' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
     public function edit(User $user): View
     {
         return view('users.edit', [

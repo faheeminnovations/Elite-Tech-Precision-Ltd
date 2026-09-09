@@ -18,8 +18,8 @@ class ContractRequest extends FormRequest
     {
         $contract = $this->route('contract');
         $contractRefRule = $contract
-            ? ['required', 'string', 'max:100', 'unique:contracts,contract_ref,'.$contract->id]
-            : ['required', 'string', 'unique:contracts', 'max:100'];
+            ? ['nullable', 'string', 'max:100', 'unique:contracts,contract_ref,'.$contract->id]
+            : ['nullable', 'string', 'unique:contracts', 'max:100'];
 
         return [
             'contract_available' => ['nullable', 'string', 'in:yes,no'],
@@ -29,7 +29,7 @@ class ContractRequest extends FormRequest
             'site_name' => ['nullable', 'string', 'max:255'],
             'contract_ref' => $contractRefRule,
             'start_date' => ['nullable', 'date'],
-            'expiry_date' => ['nullable', 'date', 'after:start_date'],
+            'expiry_date' => ['nullable', 'date'],
             'frequency' => ['nullable', 'string', 'max:50'],
             'last_ppm_date' => ['nullable', 'date'],
             'next_ppm_due' => ['nullable', 'date'],
@@ -49,12 +49,10 @@ class ContractRequest extends FormRequest
             'job_ref.max' => 'Job reference must not exceed 100 characters.',
             'area.max' => 'Area must not exceed 100 characters.',
             'site_name.max' => 'Site name must not exceed 255 characters.',
-            'contract_ref.required' => 'Contract reference is required.',
             'contract_ref.unique' => 'Contract reference already exists.',
             'contract_ref.max' => 'Contract reference must not exceed 100 characters.',
             'start_date.date' => 'Start date must be a valid date.',
             'expiry_date.date' => 'Expiry date must be a valid date.',
-            'expiry_date.after' => 'Expiry date must be after start date.',
             'frequency.max' => 'Frequency must not exceed 50 characters.',
             'last_ppm_date.date' => 'Last PPM date must be a valid date.',
             'next_ppm_due.date' => 'Next PPM due date must be a valid date.',
@@ -79,5 +77,20 @@ class ContractRequest extends FormRequest
         }
 
         parent::failedValidation($validator);
+    }
+
+    protected function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $startDate = $this->input('start_date');
+            $expiryDate = $this->input('expiry_date');
+            
+            // Only validate date relationship if both dates are provided
+            if ($startDate && $expiryDate) {
+                if (strtotime($expiryDate) <= strtotime($startDate)) {
+                    $validator->errors()->add('expiry_date', 'Expiry date must be after start date.');
+                }
+            }
+        });
     }
 }

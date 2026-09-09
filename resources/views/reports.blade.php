@@ -60,7 +60,7 @@
                         <select name="engineer" id="repEngineer" class="form-select">
                             <option value="">All</option>
                             @foreach($engineers as $eng)
-                                <option value="{{ $eng->id }}" @selected($engineer == $eng->id)">{{ $eng->name }}</option>
+                                <option value="{{ $eng->name }}" @selected($engineer == $eng->name)">{{ $eng->name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -186,28 +186,5 @@
                 window.location.href = url;
             }
         }
-
-        // Initialize select2 for dropdowns
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof $.fn.select2 !== 'undefined') {
-                $('#repCustomer').select2({
-                    placeholder: 'All customers',
-                    allowClear: true,
-                    width: '100%',
-                    theme: 'bootstrap-5',
-                    dropdownParent: $(document.body),
-                    minimumResultsForSearch: 3
-                });
-
-                $('#repEngineer').select2({
-                    placeholder: 'All engineers',
-                    allowClear: true,
-                    width: '100%',
-                    theme: 'bootstrap-5',
-                    dropdownParent: $(document.body),
-                    minimumResultsForSearch: 3
-                });
-            }
-        });
     </script>
 </x-app-layout>

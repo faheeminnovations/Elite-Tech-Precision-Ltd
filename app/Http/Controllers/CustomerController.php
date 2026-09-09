@@ -72,6 +72,32 @@ class CustomerController extends Controller
         return redirect()->route('customers.index')->with('success', 'Customer added successfully.');
     }
 
+    public function quickCreate(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255', 'unique:customers,email'],
+            'region' => ['nullable', 'string', 'max:100'],
+            'phone' => ['nullable', 'string', 'max:50', 'regex:/^[0-9+\-\s()]*$/'],
+            'category' => ['nullable', 'string', 'in:new,chain'],
+        ]);
+
+        $customer = Customer::create($validated);
+
+        // Send email notification for customer creation
+        $this->notificationService->sendCustomerCreated($customer, auth()->user());
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Customer added successfully.',
+            'customer' => [
+                'name' => $customer->name,
+                'email' => $customer->email,
+                'region' => $customer->region,
+            ]
+        ]);
+    }
+
     public function show(Customer $customer): View
     {
         return view('customers.show', compact('customer'));

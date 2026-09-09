@@ -56,21 +56,24 @@ class ReportController extends Controller
             'preview' => $preview,
             'areas' => Customer::AREAS,
             'categories' => Customer::CATEGORIES,
-            'engineers' => User::engineers()->active()->orderBy('name')->get(),
+            'engineers' => User::engineers()->active()->orderBy('name')->get(['id', 'name']),
         ]);
     }
 
     private function resolveEngineerFilter(?string $engineer): ?int
     {
-        if (! $engineer || $engineer === 'All') {
+        if (! $engineer || $engineer === '' || $engineer === 'All') {
             return null;
         }
 
+        // If it's already an ID
         if (is_numeric($engineer)) {
             return (int) $engineer;
         }
 
-        return User::where('name', $engineer)->value('id');
+        // Try to find engineer by name
+        $engineerUser = User::where('name', $engineer)->first();
+        return $engineerUser ? $engineerUser->id : null;
     }
 
     private function resolveCustomerFilter(?string $customer): ?int

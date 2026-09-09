@@ -74,6 +74,10 @@ class ServiceController extends Controller
     {
         $validated = $request->validated();
 
+        // Set default values for fields that have database constraints but are optional in form
+        $validated['service_type'] = $validated['service_type'] ?? 'PPM';
+        $validated['status'] = $validated['status'] ?? 'scheduled';
+
         $validated = $this->applyEngineerAssignment($validated);
         $validated['created_by'] = Auth::id();
         $validated['updated_by'] = Auth::id();
@@ -121,6 +125,14 @@ class ServiceController extends Controller
     public function update(ServiceRequest $request, Service $service)
     {
         $validated = $request->validated();
+
+        // Set default values for fields that have database constraints but are optional in form
+        if (!isset($validated['service_type']) || $validated['service_type'] === '') {
+            $validated['service_type'] = $service->service_type ?? 'PPM';
+        }
+        if (!isset($validated['status']) || $validated['status'] === '') {
+            $validated['status'] = $service->status ?? 'scheduled';
+        }
 
         $oldStatus = $service->status;
         $newStatus = $validated['status'] ?? $service->status;

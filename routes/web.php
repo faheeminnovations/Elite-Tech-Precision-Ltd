@@ -26,6 +26,7 @@ Route::middleware(['auth', 'role:admin|engineer'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::resource('customers', CustomerController::class);
+    Route::post('/customers/quick-create', [CustomerController::class, 'quickCreate'])->name('customers.quick-create');
     Route::resource('contracts', ContractController::class);
     Route::resource('services', ServiceController::class);
     Route::resource('responses', ResponseController::class);
@@ -62,6 +63,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::put('/settings/email/{emailType}', [SettingsController::class, 'updateEmailSetting'])->name('settings.email.update');
 
     Route::resource('users', UserController::class);
+    Route::post('/users/quick-create', [UserController::class, 'quickCreate'])->name('users.quick-create');
 
     Route::get('/admin/engineer-activity', [EngineerActivityController::class, 'index'])
         ->name('admin.engineer-activity');
