@@ -65,6 +65,7 @@ class SendPPMReminders extends Command
         }
         
         $internalEmail = config('app.internal_reminder_email', 'support@devfaheem.com');
+        $internalEmails = explode(',', $internalEmail);
         
         // Send overdue PPM reminders
         foreach ($overdueContracts as $contract) {
@@ -73,7 +74,9 @@ class SendPPMReminders extends Command
             
             // Send internal reminder
             try {
-                Mail::to($internalEmail)->send(new OverduePPMMail($contract, $customer, $overdueDays, 'internal'));
+                foreach ($internalEmails as $email) {
+                    Mail::to(trim($email))->send(new OverduePPMMail($contract, $customer, $overdueDays, 'internal'));
+                }
                 $this->info("✓ Sent overdue PPM reminder for {$contract->job_ref} to internal");
             } catch (\Exception $e) {
                 $this->error("✗ Failed to send overdue PPM reminder for {$contract->job_ref}: {$e->getMessage()}");
@@ -97,7 +100,9 @@ class SendPPMReminders extends Command
             
             // Send internal reminder
             try {
-                Mail::to($internalEmail)->send(new PPMDueWithin30DaysMail($contract, $customer, $daysUntilDue, 'internal', $upcomingContracts->count()));
+                foreach ($internalEmails as $email) {
+                    Mail::to(trim($email))->send(new PPMDueWithin30DaysMail($contract, $customer, $daysUntilDue, 'internal', $upcomingContracts->count()));
+                }
                 $this->info("✓ Sent upcoming PPM reminder for {$contract->job_ref} to internal");
             } catch (\Exception $e) {
                 $this->error("✗ Failed to send upcoming PPM reminder for {$contract->job_ref}: {$e->getMessage()}");

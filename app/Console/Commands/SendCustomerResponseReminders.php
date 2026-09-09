@@ -60,6 +60,7 @@ class SendCustomerResponseReminders extends Command
         }
         
         $internalEmail = config('app.internal_reminder_email', 'support@devfaheem.com');
+        $internalEmails = explode(',', $internalEmail);
         
         // Send reminders for pending responses
         foreach ($pendingResponses as $response) {
@@ -67,7 +68,9 @@ class SendCustomerResponseReminders extends Command
             $customer = $contract ? Customer::find($contract->customer_id) : null;
             
             try {
-                Mail::to($internalEmail)->send(new CustomerResponseReviewMail($response, $contract, $customer, 'pending', $totalResponses));
+                foreach ($internalEmails as $email) {
+                    Mail::to(trim($email))->send(new CustomerResponseReviewMail($response, $contract, $customer, 'pending', $totalResponses));
+                }
                 $this->info("✓ Sent pending response reminder for response ID {$response->id}");
             } catch (\Exception $e) {
                 $this->error("✗ Failed to send pending response reminder for response ID {$response->id}: {$e->getMessage()}");
@@ -80,7 +83,9 @@ class SendCustomerResponseReminders extends Command
             $customer = $contract ? Customer::find($contract->customer_id) : null;
             
             try {
-                Mail::to($internalEmail)->send(new CustomerResponseReviewMail($response, $contract, $customer, 'accepted', $totalResponses));
+                foreach ($internalEmails as $email) {
+                    Mail::to(trim($email))->send(new CustomerResponseReviewMail($response, $contract, $customer, 'accepted', $totalResponses));
+                }
                 $this->info("✓ Sent accepted response reminder for response ID {$response->id}");
             } catch (\Exception $e) {
                 $this->error("✗ Failed to send accepted response reminder for response ID {$response->id}: {$e->getMessage()}");
@@ -93,7 +98,9 @@ class SendCustomerResponseReminders extends Command
             $customer = $contract ? Customer::find($contract->customer_id) : null;
             
             try {
-                Mail::to($internalEmail)->send(new CustomerResponseReviewMail($response, $contract, $customer, 'declined', $totalResponses));
+                foreach ($internalEmails as $email) {
+                    Mail::to(trim($email))->send(new CustomerResponseReviewMail($response, $contract, $customer, 'declined', $totalResponses));
+                }
                 $this->info("✓ Sent declined response reminder for response ID {$response->id}");
             } catch (\Exception $e) {
                 $this->error("✗ Failed to send declined response reminder for response ID {$response->id}: {$e->getMessage()}");

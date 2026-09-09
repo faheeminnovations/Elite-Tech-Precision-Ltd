@@ -141,12 +141,15 @@ class SendEngineerReminders extends Command
         
         // Also send summary to internal email
         $internalEmail = config('app.internal_reminder_email', 'support@devfaheem.com');
+        $internalEmails = explode(',', $internalEmail);
         try {
-            Mail::raw("Engineer Task Summary\n\nTotal services today: {$todayServices->count()}\nTotal services tomorrow: {$tomorrowServices->count()}\nTotal services this week: {$weekServices->count()}\nEngineers notified: {$engineers->count()}\n\nSummary generated at: " . now()->format('Y-m-d H:i:s'), function ($message) use ($internalEmail) {
-                $message->to($internalEmail)
-                    ->subject('EliteFlow Engineer Task Summary')
-                    ->from(config('mail.from.address'), config('mail.from.name'));
-            });
+            foreach ($internalEmails as $email) {
+                Mail::raw("Engineer Task Summary\n\nTotal services today: {$todayServices->count()}\nTotal services tomorrow: {$tomorrowServices->count()}\nTotal services this week: {$weekServices->count()}\nEngineers notified: {$engineers->count()}\n\nSummary generated at: " . now()->format('Y-m-d H:i:s'), function ($message) use ($email) {
+                    $message->to(trim($email))
+                        ->subject('EliteFlow Engineer Task Summary')
+                        ->from(config('mail.from.address'), config('mail.from.name'));
+                });
+            }
             
             $this->info("✓ Sent summary to internal email: {$internalEmail}");
         } catch (\Exception $e) {

@@ -66,6 +66,7 @@ class SendNoContractCustomerReminders extends Command
         }
         
         $internalEmail = config('app.internal_reminder_email', 'support@devfaheem.com');
+        $internalEmails = explode(',', $internalEmail);
         
         // Send reminders for each customer without contract
         foreach ($customersWithoutContracts as $customer) {
@@ -76,7 +77,9 @@ class SendNoContractCustomerReminders extends Command
             $lastServiceDate = $lastService ? $lastService->created_at : null;
             
             try {
-                Mail::to($internalEmail)->send(new NoContractCustomerMail($customer, $lastServiceDate, 'sales', $customersWithoutContracts->count()));
+                foreach ($internalEmails as $email) {
+                    Mail::to(trim($email))->send(new NoContractCustomerMail($customer, $lastServiceDate, 'sales', $customersWithoutContracts->count()));
+                }
                 $this->info("✓ Sent no-contract reminder for customer {$customer->name}");
             } catch (\Exception $e) {
                 $this->error("✗ Failed to send no-contract reminder for customer {$customer->name}: {$e->getMessage()}");

@@ -27,6 +27,7 @@ class TestEmailCommand extends Command
     public function handle()
     {
         $email = $this->argument('email') ?? config('mail.from.address');
+        $emails = explode(',', $email);
 
         $this->info("Sending test email to: {$email}");
         $this->info("Using mailer: " . config('mail.mailer'));
@@ -34,11 +35,13 @@ class TestEmailCommand extends Command
         $this->info("Port: " . config('mail.mailers.smtp.port'));
 
         try {
-            Mail::raw('This is a test email from EliteFlow. Your email configuration is working correctly!', function ($message) use ($email) {
-                $message->to($email)
-                    ->subject('EliteFlow Email Test - ' . now()->format('Y-m-d H:i:s'))
-                    ->from(config('mail.from.address'), config('mail.from.name'));
-            });
+            foreach ($emails as $recipient) {
+                Mail::raw('This is a test email from EliteFlow. Your email configuration is working correctly!', function ($message) use ($recipient) {
+                    $message->to(trim($recipient))
+                        ->subject('EliteFlow Email Test - ' . now()->format('Y-m-d H:i:s'))
+                        ->from(config('mail.from.address'), config('mail.from.name'));
+                });
+            }
 
             $this->info('✓ Test email sent successfully!');
             $this->info('Please check your inbox (and spam folder) for the test email.');
