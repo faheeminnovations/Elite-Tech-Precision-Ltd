@@ -113,6 +113,42 @@ return new class extends Migration
                 'description' => 'Send email when response status changes',
                 'is_enabled' => true,
             ],
+            [
+                'email_type' => 'customer_ppm_reminder',
+                'display_name' => 'Customer PPM Reminder',
+                'description' => 'Send PPM reminder emails to customers',
+                'is_enabled' => true,
+            ],
+            [
+                'email_type' => 'internal_ppm_reminder',
+                'display_name' => 'Internal PPM Reminder',
+                'description' => 'Send PPM reminder emails to internal team',
+                'is_enabled' => true,
+            ],
+            [
+                'email_type' => 'contract_expiry_reminder',
+                'display_name' => 'Contract Expiry Reminder',
+                'description' => 'Send contract expiry reminder emails',
+                'is_enabled' => true,
+            ],
+            [
+                'email_type' => 'service_due_reminder',
+                'display_name' => 'Service Due Reminder',
+                'description' => 'Send service due reminder emails',
+                'is_enabled' => true,
+            ],
+            [
+                'email_type' => 'overdue_contract_reminder',
+                'display_name' => 'Overdue Contract Reminder',
+                'description' => 'Send overdue contract reminder emails',
+                'is_enabled' => true,
+            ],
+            [
+                'email_type' => 'response_pending_reminder',
+                'display_name' => 'Response Pending Reminder',
+                'description' => 'Send response pending reminder emails',
+                'is_enabled' => true,
+            ],
         ]);
     }
 

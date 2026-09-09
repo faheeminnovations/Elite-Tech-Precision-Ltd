@@ -19,17 +19,19 @@ class ResponseStatusMail extends Mailable implements ShouldQueue
     public $newStatus;
     public $action;
     public $user;
+    public $isAdmin;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($response, $oldStatus, $newStatus, $action, $user)
+    public function __construct($response, $oldStatus, $newStatus, $action, $user, $isAdmin = false)
     {
         $this->response = $response;
         $this->oldStatus = $oldStatus;
         $this->newStatus = $newStatus;
         $this->action = $action;
         $this->user = $user;
+        $this->isAdmin = $isAdmin;
     }
 
     /**

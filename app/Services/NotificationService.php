@@ -34,23 +34,36 @@ class NotificationService
     /**
      * Send status update notification
      */
-    public function sendStatusUpdate(string $entityType, string $entityName, string $oldStatus, string $newStatus, string $action, $user): void
+    public function sendStatusUpdate(string $entityType, string $entityName, string $oldStatus, string $newStatus, string $action, $user, $customerEmail = null): void
     {
         if (!$this->isEnabled()) {
             return;
         }
 
-        // Always use config email for now since session settings might not be configured
-        $recipientEmail = config('mail.from.address');
-        
-        Mail::to($recipientEmail)->send(new StatusUpdateMail(
+        // Always send to admin/internal email
+        $adminEmail = config('mail.from.address');
+        Mail::to($adminEmail)->send(new StatusUpdateMail(
             $entityType,
             $entityName,
             $oldStatus,
             $newStatus,
             $action,
-            $user
+            $user,
+            true // isAdmin = true for admin email
         ));
+
+        // Send separate email to customer if provided
+        if ($customerEmail && !empty($customerEmail)) {
+            Mail::to($customerEmail)->send(new StatusUpdateMail(
+                $entityType,
+                $entityName,
+                $oldStatus,
+                $newStatus,
+                $action,
+                $user,
+                false // isAdmin = false for customer email
+            ));
+        }
     }
 
     /**
@@ -62,16 +75,28 @@ class NotificationService
             return;
         }
 
-        // Send to customer's email if available, otherwise fallback to internal email
-        $recipientEmail = $contract->customer_email ?? config('mail.from.address');
-        
-        Mail::to($recipientEmail)->send(new ContractStatusMail(
+        // Always send to admin/internal email
+        $adminEmail = config('mail.from.address');
+        Mail::to($adminEmail)->send(new ContractStatusMail(
             $contract,
             'N/A',
             $contract->status ?? 'active',
             'Contract Created',
-            $user
+            $user,
+            true // isAdmin = true for admin email
         ));
+
+        // Send separate email to customer if available
+        if (!empty($contract->customer_email)) {
+            Mail::to($contract->customer_email)->send(new ContractStatusMail(
+                $contract,
+                'N/A',
+                $contract->status ?? 'active',
+                'Contract Created',
+                $user,
+                false // isAdmin = false for customer email
+            ));
+        }
     }
 
     /**
@@ -83,16 +108,28 @@ class NotificationService
             return;
         }
 
-        // Send to customer's email if available, otherwise fallback to internal email
-        $recipientEmail = $contract->customer_email ?? config('mail.from.address');
-        
-        Mail::to($recipientEmail)->send(new ContractStatusMail(
+        // Always send to admin/internal email
+        $adminEmail = config('mail.from.address');
+        Mail::to($adminEmail)->send(new ContractStatusMail(
             $contract,
             $contract->status ?? 'N/A',
             $contract->status ?? 'N/A',
             'Contract Updated',
-            $user
+            $user,
+            true // isAdmin = true for admin email
         ));
+
+        // Send separate email to customer if available
+        if (!empty($contract->customer_email)) {
+            Mail::to($contract->customer_email)->send(new ContractStatusMail(
+                $contract,
+                $contract->status ?? 'N/A',
+                $contract->status ?? 'N/A',
+                'Contract Updated',
+                $user,
+                false // isAdmin = false for customer email
+            ));
+        }
     }
 
     /**
@@ -104,16 +141,28 @@ class NotificationService
             return;
         }
 
-        // Always use config email for now since session settings might not be configured
-        $recipientEmail = config('mail.from.address');
-        
-        Mail::to($recipientEmail)->send(new ContractStatusMail(
+        // Always send to admin/internal email
+        $adminEmail = config('mail.from.address');
+        Mail::to($adminEmail)->send(new ContractStatusMail(
             $contractData,
             $contractData->status ?? 'N/A',
             'Deleted',
             'Contract Deleted',
-            $user
+            $user,
+            true // isAdmin = true for admin email
         ));
+
+        // Send separate email to customer if available
+        if (!empty($contractData->customer_email)) {
+            Mail::to($contractData->customer_email)->send(new ContractStatusMail(
+                $contractData,
+                $contractData->status ?? 'N/A',
+                'Deleted',
+                'Contract Deleted',
+                $user,
+                false // isAdmin = false for customer email
+            ));
+        }
     }
 
     /**
@@ -125,16 +174,28 @@ class NotificationService
             return;
         }
 
-        // Send to customer's email if available, otherwise fallback to internal email
-        $recipientEmail = $contract->customer_email ?? config('mail.from.address');
-        
-        Mail::to($recipientEmail)->send(new ContractStatusMail(
+        // Always send to admin/internal email
+        $adminEmail = config('mail.from.address');
+        Mail::to($adminEmail)->send(new ContractStatusMail(
             $contract,
             $oldStatus,
             $newStatus,
             'Status Changed',
-            $user
+            $user,
+            true // isAdmin = true for admin email
         ));
+
+        // Send separate email to customer if available
+        if (!empty($contract->customer_email)) {
+            Mail::to($contract->customer_email)->send(new ContractStatusMail(
+                $contract,
+                $oldStatus,
+                $newStatus,
+                'Status Changed',
+                $user,
+                false // isAdmin = false for customer email
+            ));
+        }
     }
 
     /**
@@ -146,17 +207,30 @@ class NotificationService
             return;
         }
 
-        // Send to customer's email if available, otherwise fallback to internal email
-        $recipientEmail = $customer->email ?? config('mail.from.address');
-        
-        Mail::to($recipientEmail)->send(new StatusUpdateMail(
+        // Always send to admin/internal email
+        $adminEmail = config('mail.from.address');
+        Mail::to($adminEmail)->send(new StatusUpdateMail(
             'Customer',
             $customer->name,
             'N/A',
             $customer->status ?? 'active',
             'Customer Created',
-            $user
+            $user,
+            true // isAdmin = true for admin email
         ));
+
+        // Send separate email to customer if available
+        if (!empty($customer->email)) {
+            Mail::to($customer->email)->send(new StatusUpdateMail(
+                'Customer',
+                $customer->name,
+                'N/A',
+                $customer->status ?? 'active',
+                'Customer Created',
+                $user,
+                false // isAdmin = false for customer email
+            ));
+        }
     }
 
     /**
@@ -168,17 +242,30 @@ class NotificationService
             return;
         }
 
-        // Send to customer's email if available, otherwise fallback to internal email
-        $recipientEmail = $customer->email ?? config('mail.from.address');
-        
-        Mail::to($recipientEmail)->send(new StatusUpdateMail(
+        // Always send to admin/internal email
+        $adminEmail = config('mail.from.address');
+        Mail::to($adminEmail)->send(new StatusUpdateMail(
             'Customer',
             $customer->name,
             $customer->status ?? 'N/A',
             $customer->status ?? 'N/A',
             'Customer Updated',
-            $user
+            $user,
+            true // isAdmin = true for admin email
         ));
+
+        // Send separate email to customer if available
+        if (!empty($customer->email)) {
+            Mail::to($customer->email)->send(new StatusUpdateMail(
+                'Customer',
+                $customer->name,
+                $customer->status ?? 'N/A',
+                $customer->status ?? 'N/A',
+                'Customer Updated',
+                $user,
+                false // isAdmin = false for customer email
+            ));
+        }
     }
 
     /**
@@ -190,17 +277,30 @@ class NotificationService
             return;
         }
 
-        // Always use config email for now since session settings might not be configured
-        $recipientEmail = config('mail.from.address');
-        
-        Mail::to($recipientEmail)->send(new StatusUpdateMail(
+        // Always send to admin/internal email
+        $adminEmail = config('mail.from.address');
+        Mail::to($adminEmail)->send(new StatusUpdateMail(
             'Customer',
             $customerData->name ?? 'Unknown',
             $customerData->status ?? 'N/A',
             'Deleted',
             'Customer Deleted',
-            $user
+            $user,
+            true // isAdmin = true for admin email
         ));
+
+        // Send separate email to customer if available
+        if (!empty($customerData->email)) {
+            Mail::to($customerData->email)->send(new StatusUpdateMail(
+                'Customer',
+                $customerData->name ?? 'Unknown',
+                $customerData->status ?? 'N/A',
+                'Deleted',
+                'Customer Deleted',
+                $user,
+                false // isAdmin = false for customer email
+            ));
+        }
     }
 
     /**
@@ -212,17 +312,30 @@ class NotificationService
             return;
         }
 
-        // Send to customer's email if available, otherwise fallback to internal email
-        $recipientEmail = $customer->email ?? config('mail.from.address');
-        
-        Mail::to($recipientEmail)->send(new StatusUpdateMail(
+        // Always send to admin/internal email
+        $adminEmail = config('mail.from.address');
+        Mail::to($adminEmail)->send(new StatusUpdateMail(
             'Customer',
             $customer->name,
             $oldStatus,
             $newStatus,
             'Status Changed',
-            $user
+            $user,
+            true // isAdmin = true for admin email
         ));
+
+        // Send separate email to customer if available
+        if (!empty($customer->email)) {
+            Mail::to($customer->email)->send(new StatusUpdateMail(
+                'Customer',
+                $customer->name,
+                $oldStatus,
+                $newStatus,
+                'Status Changed',
+                $user,
+                false // isAdmin = false for customer email
+            ));
+        }
     }
 
     /**
@@ -234,17 +347,30 @@ class NotificationService
             return;
         }
 
-        // Always use config email for now since session settings might not be configured
-        $recipientEmail = config('mail.from.address');
-        
-        Mail::to($recipientEmail)->send(new StatusUpdateMail(
+        // Always send to admin/internal email
+        $adminEmail = config('mail.from.address');
+        Mail::to($adminEmail)->send(new StatusUpdateMail(
             'Service',
             $service->name ?? 'Service #' . $service->id,
             'N/A',
             $service->status ?? 'active',
             'Service Created',
-            $user
+            $user,
+            true // isAdmin = true for admin email
         ));
+
+        // Send separate email to customer if available
+        if (!empty($service->customer_email)) {
+            Mail::to($service->customer_email)->send(new StatusUpdateMail(
+                'Service',
+                $service->name ?? 'Service #' . $service->id,
+                'N/A',
+                $service->status ?? 'active',
+                'Service Created',
+                $user,
+                false // isAdmin = false for customer email
+            ));
+        }
     }
 
     /**
@@ -256,17 +382,30 @@ class NotificationService
             return;
         }
 
-        // Always use config email for now since session settings might not be configured
-        $recipientEmail = config('mail.from.address');
-        
-        Mail::to($recipientEmail)->send(new StatusUpdateMail(
+        // Always send to admin/internal email
+        $adminEmail = config('mail.from.address');
+        Mail::to($adminEmail)->send(new StatusUpdateMail(
             'Service',
             $service->name ?? 'Service #' . $service->id,
             $service->status ?? 'N/A',
             $service->status ?? 'N/A',
             'Service Updated',
-            $user
+            $user,
+            true // isAdmin = true for admin email
         ));
+
+        // Send separate email to customer if available
+        if (!empty($service->customer_email)) {
+            Mail::to($service->customer_email)->send(new StatusUpdateMail(
+                'Service',
+                $service->name ?? 'Service #' . $service->id,
+                $service->status ?? 'N/A',
+                $service->status ?? 'N/A',
+                'Service Updated',
+                $user,
+                false // isAdmin = false for customer email
+            ));
+        }
     }
 
     /**
@@ -278,17 +417,30 @@ class NotificationService
             return;
         }
 
-        // Always use config email for now since session settings might not be configured
-        $recipientEmail = config('mail.from.address');
-        
-        Mail::to($recipientEmail)->send(new StatusUpdateMail(
+        // Always send to admin/internal email
+        $adminEmail = config('mail.from.address');
+        Mail::to($adminEmail)->send(new StatusUpdateMail(
             'Service',
             $serviceData->name ?? 'Service #' . ($serviceData->id ?? 'Unknown'),
             $serviceData->status ?? 'N/A',
             'Deleted',
             'Service Deleted',
-            $user
+            $user,
+            true // isAdmin = true for admin email
         ));
+
+        // Send separate email to customer if available
+        if (!empty($serviceData->customer_email)) {
+            Mail::to($serviceData->customer_email)->send(new StatusUpdateMail(
+                'Service',
+                $serviceData->name ?? 'Service #' . ($serviceData->id ?? 'Unknown'),
+                $serviceData->status ?? 'N/A',
+                'Deleted',
+                'Service Deleted',
+                $user,
+                false // isAdmin = false for customer email
+            ));
+        }
     }
 
     /**
@@ -300,16 +452,28 @@ class NotificationService
             return;
         }
 
-        // Always use config email for now since session settings might not be configured
-        $recipientEmail = config('mail.from.address');
-        
-        Mail::to($recipientEmail)->send(new ResponseStatusMail(
+        // Always send to admin/internal email
+        $adminEmail = config('mail.from.address');
+        Mail::to($adminEmail)->send(new ResponseStatusMail(
             $response,
             'N/A',
             $response->status ?? 'active',
             'Response Created',
-            $user
+            $user,
+            true // isAdmin = true for admin email
         ));
+
+        // Send separate email to customer if available
+        if (!empty($response->customer_email)) {
+            Mail::to($response->customer_email)->send(new ResponseStatusMail(
+                $response,
+                'N/A',
+                $response->status ?? 'active',
+                'Response Created',
+                $user,
+                false // isAdmin = false for customer email
+            ));
+        }
     }
 
     /**
@@ -321,16 +485,28 @@ class NotificationService
             return;
         }
 
-        // Always use config email for now since session settings might not be configured
-        $recipientEmail = config('mail.from.address');
-        
-        Mail::to($recipientEmail)->send(new ResponseStatusMail(
+        // Always send to admin/internal email
+        $adminEmail = config('mail.from.address');
+        Mail::to($adminEmail)->send(new ResponseStatusMail(
             $response,
             $response->status ?? 'N/A',
             $response->status ?? 'N/A',
             'Response Updated',
-            $user
+            $user,
+            true // isAdmin = true for admin email
         ));
+
+        // Send separate email to customer if available
+        if (!empty($response->customer_email)) {
+            Mail::to($response->customer_email)->send(new ResponseStatusMail(
+                $response,
+                $response->status ?? 'N/A',
+                $response->status ?? 'N/A',
+                'Response Updated',
+                $user,
+                false // isAdmin = false for customer email
+            ));
+        }
     }
 
     /**
@@ -342,16 +518,28 @@ class NotificationService
             return;
         }
 
-        // Always use config email for now since session settings might not be configured
-        $recipientEmail = config('mail.from.address');
-        
-        Mail::to($recipientEmail)->send(new ResponseStatusMail(
+        // Always send to admin/internal email
+        $adminEmail = config('mail.from.address');
+        Mail::to($adminEmail)->send(new ResponseStatusMail(
             $responseData,
             $responseData->status ?? 'N/A',
             'Deleted',
             'Response Deleted',
-            $user
+            $user,
+            true // isAdmin = true for admin email
         ));
+
+        // Send separate email to customer if available
+        if (!empty($responseData->customer_email)) {
+            Mail::to($responseData->customer_email)->send(new ResponseStatusMail(
+                $responseData,
+                $responseData->status ?? 'N/A',
+                'Deleted',
+                'Response Deleted',
+                $user,
+                false // isAdmin = false for customer email
+            ));
+        }
     }
 
     /**
@@ -363,16 +551,28 @@ class NotificationService
             return;
         }
 
-        // Always use config email for now since session settings might not be configured
-        $recipientEmail = config('mail.from.address');
-        
-        Mail::to($recipientEmail)->send(new ResponseStatusMail(
+        // Always send to admin/internal email
+        $adminEmail = config('mail.from.address');
+        Mail::to($adminEmail)->send(new ResponseStatusMail(
             $response,
             $oldStatus,
             $newStatus,
             'Status Changed',
-            $user
+            $user,
+            true // isAdmin = true for admin email
         ));
+
+        // Send separate email to customer if available
+        if (!empty($response->customer_email)) {
+            Mail::to($response->customer_email)->send(new ResponseStatusMail(
+                $response,
+                $oldStatus,
+                $newStatus,
+                'Status Changed',
+                $user,
+                false // isAdmin = false for customer email
+            ));
+        }
     }
 
     /**
@@ -384,14 +584,24 @@ class NotificationService
             return;
         }
 
-        $recipientEmail = $customer->email ?? session('settings.reminder_email') ?? config('mail.from.address');
-        
-        Mail::to($recipientEmail)->send(new \App\Mail\PPMReminderMail(
+        // Always send to admin/internal email
+        $adminEmail = session('settings.internal_reminder_inbox') ?? config('mail.from.address');
+        Mail::to($adminEmail)->send(new \App\Mail\PPMReminderMail(
             $contract,
             $customer,
             $daysUntilDue,
-            'customer'
+            'internal'
         ));
+
+        // Send separate email to customer if available
+        if (!empty($customer->email)) {
+            Mail::to($customer->email)->send(new \App\Mail\PPMReminderMail(
+                $contract,
+                $customer,
+                $daysUntilDue,
+                'customer'
+            ));
+        }
     }
 
     /**
@@ -403,14 +613,24 @@ class NotificationService
             return;
         }
 
-        $recipientEmail = session('settings.internal_reminder_inbox') ?? config('mail.from.address');
-        
-        Mail::to($recipientEmail)->send(new \App\Mail\PPMReminderMail(
+        // Always send to admin/internal email
+        $adminEmail = session('settings.internal_reminder_inbox') ?? config('mail.from.address');
+        Mail::to($adminEmail)->send(new \App\Mail\PPMReminderMail(
             $contract,
             $customer,
             $daysUntilDue,
             'internal'
         ));
+
+        // Send separate email to customer if available
+        if (!empty($customer->email)) {
+            Mail::to($customer->email)->send(new \App\Mail\PPMReminderMail(
+                $contract,
+                $customer,
+                $daysUntilDue,
+                'customer'
+            ));
+        }
     }
 
     /**
@@ -422,13 +642,22 @@ class NotificationService
             return;
         }
 
-        $recipientEmail = session('settings.internal_reminder_inbox') ?? config('mail.from.address');
-        
-        Mail::to($recipientEmail)->send(new \App\Mail\ContractExpiryReminderMail(
+        // Always send to admin/internal email
+        $adminEmail = session('settings.internal_reminder_inbox') ?? config('mail.from.address');
+        Mail::to($adminEmail)->send(new \App\Mail\ContractExpiryReminderMail(
             $contract,
             $customer,
             $daysUntilExpiry
         ));
+
+        // Send separate email to customer if available
+        if (!empty($customer->email)) {
+            Mail::to($customer->email)->send(new \App\Mail\ContractExpiryReminderMail(
+                $contract,
+                $customer,
+                $daysUntilExpiry
+            ));
+        }
     }
 
     /**
@@ -440,13 +669,22 @@ class NotificationService
             return;
         }
 
-        $recipientEmail = session('settings.internal_reminder_inbox') ?? config('mail.from.address');
-        
-        Mail::to($recipientEmail)->send(new \App\Mail\ServiceDueReminderMail(
+        // Always send to admin/internal email
+        $adminEmail = session('settings.internal_reminder_inbox') ?? config('mail.from.address');
+        Mail::to($adminEmail)->send(new \App\Mail\ServiceDueReminderMail(
             $service,
             $contract,
             $customer
         ));
+
+        // Send separate email to customer if available
+        if (!empty($customer->email)) {
+            Mail::to($customer->email)->send(new \App\Mail\ServiceDueReminderMail(
+                $service,
+                $contract,
+                $customer
+            ));
+        }
     }
 
     /**
@@ -458,13 +696,22 @@ class NotificationService
             return;
         }
 
-        $recipientEmail = session('settings.internal_reminder_inbox') ?? config('mail.from.address');
-        
-        Mail::to($recipientEmail)->send(new \App\Mail\OverdueContractReminderMail(
+        // Always send to admin/internal email
+        $adminEmail = session('settings.internal_reminder_inbox') ?? config('mail.from.address');
+        Mail::to($adminEmail)->send(new \App\Mail\OverdueContractReminderMail(
             $contract,
             $customer,
             $daysOverdue
         ));
+
+        // Send separate email to customer if available
+        if (!empty($customer->email)) {
+            Mail::to($customer->email)->send(new \App\Mail\OverdueContractReminderMail(
+                $contract,
+                $customer,
+                $daysOverdue
+            ));
+        }
     }
 
     /**
@@ -476,14 +723,24 @@ class NotificationService
             return;
         }
 
-        $recipientEmail = session('settings.internal_reminder_inbox') ?? config('mail.from.address');
-        
-        Mail::to($recipientEmail)->send(new \App\Mail\ResponsePendingReminderMail(
+        // Always send to admin/internal email
+        $adminEmail = session('settings.internal_reminder_inbox') ?? config('mail.from.address');
+        Mail::to($adminEmail)->send(new \App\Mail\ResponsePendingReminderMail(
             $response,
             $contract,
             $customer,
             $daysPending
         ));
+
+        // Send separate email to customer if available
+        if (!empty($customer->email)) {
+            Mail::to($customer->email)->send(new \App\Mail\ResponsePendingReminderMail(
+                $response,
+                $contract,
+                $customer,
+                $daysPending
+            ));
+        }
     }
 
     /**
@@ -519,14 +776,28 @@ class NotificationService
                 if (!$this->isEnabled()) {
                     return;
                 }
-                $recipientEmail = session('settings.internal_reminder_inbox') ?? config('mail.from.address');
-                Mail::to($recipientEmail)->send(new ContractStatusMail(
+                // Always send to admin/internal email
+                $adminEmail = session('settings.internal_reminder_inbox') ?? config('mail.from.address');
+                Mail::to($adminEmail)->send(new ContractStatusMail(
                     $contract,
                     $oldStatus,
                     $newStatus,
                     $action,
-                    $user
+                    $user,
+                    true // isAdmin = true for admin email
                 ));
+
+                // Send separate email to customer if available
+                if (!empty($contract->customer_email)) {
+                    Mail::to($contract->customer_email)->send(new ContractStatusMail(
+                        $contract,
+                        $oldStatus,
+                        $newStatus,
+                        $action,
+                        $user,
+                        false // isAdmin = false for customer email
+                    ));
+                }
         }
     }
 
@@ -555,14 +826,28 @@ class NotificationService
                 if (!$this->isEnabled()) {
                     return;
                 }
-                $recipientEmail = session('settings.internal_reminder_inbox') ?? config('mail.from.address');
-                Mail::to($recipientEmail)->send(new ResponseStatusMail(
+                // Always send to admin/internal email
+                $adminEmail = session('settings.internal_reminder_inbox') ?? config('mail.from.address');
+                Mail::to($adminEmail)->send(new ResponseStatusMail(
                     $response,
                     $oldStatus,
                     $newStatus,
                     $action,
-                    $user
+                    $user,
+                    true // isAdmin = true for admin email
                 ));
+
+                // Send separate email to customer if available
+                if (!empty($response->customer_email)) {
+                    Mail::to($response->customer_email)->send(new ResponseStatusMail(
+                        $response,
+                        $oldStatus,
+                        $newStatus,
+                        $action,
+                        $user,
+                        false // isAdmin = false for customer email
+                    ));
+                }
         }
     }
 }

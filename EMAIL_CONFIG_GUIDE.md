@@ -32,15 +32,36 @@ INTERNAL_REMINDER_EMAIL=support@devfaheem.com
 2. Add or update the mail configuration lines above
 3. Clear the configuration cache: `php artisan config:clear`
 4. Test the email configuration: `php artisan email:test your-email@example.com`
+5. Run database seeder to ensure email notification settings are configured: `php artisan db:seed --class=DatabaseSeeder`
 
-## Email Notifications
+## Email Notifications - UPDATED
 
-The system now sends email notifications for:
+The system now sends email notifications to **both customers and admins** for:
 - Contract creation, updates, and deletion
 - Customer creation, updates, and deletion
 - Service creation, updates, and deletion
 - Response creation and updates
 - All status changes across all entities
+
+### Dual Recipient System
+
+**Admin Notifications:**
+- Always sent to the configured admin email (`MAIL_FROM_ADDRESS`)
+- Include administrative context in email content
+- Used for tracking and monitoring purposes
+
+**Customer Notifications:**
+- Sent to the customer's email address when available
+- Include customer-facing language and context
+- Used for keeping customers informed about their accounts
+
+### Notification Logic
+
+For each notification event:
+1. **Admin email** is always sent (to `MAIL_FROM_ADDRESS`)
+2. **Customer email** is sent separately if the customer has an email address
+3. Each email has appropriate context (admin vs customer messaging)
+4. Both emails are queued and sent independently
 
 ## Automated Email Reminders
 
@@ -89,7 +110,12 @@ php artisan emails:send-no-contract-reminders --test
 php artisan emails:send-engineer-reminders --test
 ```
 
-All notifications are sent to the email configured in the Settings page under "Internal reminder inbox" or via `INTERNAL_REMINDER_EMAIL` environment variable.
+### New Testing Command
+Test the complete notification system:
+```bash
+php artisan emails:test-notifications [email@example.com]
+```
+This command tests all notification types and sends emails to both customer and admin recipients.
 
 ## Email Templates
 
@@ -98,12 +124,21 @@ Email templates are located in `resources/views/emails/`:
 - `contract-status.blade.php` - Contract-specific updates
 - `response-status.blade.php` - Customer response updates
 
+### Template Updates
+All email templates now support:
+- Admin context flag (`$isAdmin`) for different messaging
+- Conditional content based on recipient type
+- Separate language for administrative vs customer notifications
+
 ## Email Notification Settings
+
+The system uses the `email_notification_settings` table to control which notification types are enabled. The database seeder automatically populates this with all available notification types.
 
 In the Settings page, you can:
 - Enable/disable email notifications globally
 - Configure the internal reminder inbox email
 - Set reminder lead times for internal and customer reminders
+- Enable/disable specific notification types individually
 
 ## Troubleshooting
 
@@ -113,6 +148,8 @@ If emails are not sending:
 3. Check Laravel logs: `storage/logs/laravel.log`
 4. Test with: `php artisan email:test your-email@example.com`
 5. Ensure email notifications are enabled in Settings
+6. Run database seeder: `php artisan db:seed --class=DatabaseSeeder`
+7. Test notification system: `php artisan emails:test-notifications`
 
 ## Queue Configuration (Optional)
 
@@ -126,3 +163,20 @@ Then run the queue worker:
 ```bash
 php artisan queue:work
 ```
+
+## Recent Updates
+
+### Customer and Admin Dual Notifications
+- Fixed notification system to send emails to both customers and admins
+- Updated all notification methods in `NotificationService`
+- Modified email templates to support admin/customer context
+- Added `isAdmin` parameter to mail classes for conditional content
+- Updated database seeder to include all reminder notification types
+
+### Notification Types Added
+- customer_ppm_reminder
+- internal_ppm_reminder
+- contract_expiry_reminder
+- service_due_reminder
+- overdue_contract_reminder
+- response_pending_reminder

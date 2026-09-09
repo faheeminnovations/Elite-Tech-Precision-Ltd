@@ -108,7 +108,11 @@
                 <p><strong>Time:</strong> {{ now()->format('Y-m-d H:i:s') }}</p>
             </div>
             
-            <p>This customer response status change was performed in the EliteFlow system. If you did not authorize this change, please contact your administrator immediately.</p>
+            @if(isset($isAdmin) && $isAdmin)
+                <p>This customer response status change was performed in the EliteFlow system. This notification is for administrative purposes.</p>
+            @else
+                <p>This customer response status change was performed in the EliteFlow system. If you did not authorize this change, please contact your administrator immediately.</p>
+            @endif
             
             <a href="{{ route('responses.show', $response->id) }}" class="button">View Response in EliteFlow</a>
         </div>

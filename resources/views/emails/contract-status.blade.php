@@ -108,7 +108,11 @@
                 <p><strong>Time:</strong> {{ now()->format('Y-m-d H:i:s') }}</p>
             </div>
             
-            <p>This contract status change was performed in the EliteFlow system. If you did not authorize this change, please contact your administrator immediately.</p>
+            @if(isset($isAdmin) && $isAdmin)
+                <p>This contract status change was performed in the EliteFlow system. This notification is for administrative purposes.</p>
+            @else
+                <p>This contract status change was performed in the EliteFlow system. If you did not authorize this change, please contact your administrator immediately.</p>
+            @endif
             
             <a href="{{ route('contracts.show', $contract->id) }}" class="button">View Contract in EliteFlow</a>
         </div>
