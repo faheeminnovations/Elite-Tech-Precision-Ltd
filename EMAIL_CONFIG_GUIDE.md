@@ -11,9 +11,9 @@ MAIL_PORT=65002
 MAIL_USERNAME=u249713597
 MAIL_PASSWORD=d8*wTI0ND
 MAIL_ENCRYPTION=null
-MAIL_FROM_ADDRESS=support@devfaheem.com
+MAIL_FROM_ADDRESS=admin-elitetechprecision@devfaheem.com
 MAIL_FROM_NAME="EliteFlow - Elite Tech Precision Ltd"
-INTERNAL_REMINDER_EMAIL=support@devfaheem.com
+INTERNAL_REMINDER_EMAIL=admin-elitetechprecision@devfaheem.com
 ```
 
 ## Configuration Details
@@ -30,9 +30,10 @@ INTERNAL_REMINDER_EMAIL=support@devfaheem.com
 
 1. Open your `.env` file in the project root
 2. Add or update the mail configuration lines above
-3. Clear the configuration cache: `php artisan config:clear`
-4. Test the email configuration: `php artisan email:test your-email@example.com`
-5. Run database seeder to ensure email notification settings are configured: `php artisan db:seed --class=DatabaseSeeder`
+3. Update `MAIL_FROM_ADDRESS` to your admin email: `admin-elitetechprecision@devfaheem.com`
+4. Clear the configuration cache: `php artisan config:clear`
+5. Test the email configuration: `php artisan email:test your-email@example.com`
+6. Run database seeder to ensure email notification settings are configured: `php artisan db:seed --class=DatabaseSeeder`
 
 ## Email Notifications - UPDATED
 
