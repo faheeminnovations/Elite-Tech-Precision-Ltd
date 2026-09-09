@@ -193,7 +193,7 @@
             <button class="btn btn-ef-primary" type="submit"><i class="bi bi-box-arrow-in-right me-1"></i> Sign in</button>
         </form>
 
-        <div class="demo-note">admin@elitetechprecision.co.uk / admin123</div>
+        <!-- <div class="demo-note">admin@elitetechprecision.it / admin123</div> -->
     </div>
 </body>
 </html>
