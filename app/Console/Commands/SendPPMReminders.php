@@ -34,7 +34,7 @@ class SendPPMReminders extends Command
         $this->info('Starting PPM reminder check...');
         
         $today = Carbon::today();
-        $thirtyDaysFromNow = Carbon::today()->addDays(30);
+        $thirtyDaysFromNow = Carbon::today()->addDays(31);
         
         // Get overdue PPMs
         $overdueContracts = Contract::where('next_ppm_due', '<', $today)
