@@ -38,6 +38,35 @@
         .btn-view { background:var(--success-bg); color:var(--success); }
         .btn-edit { background:#E4EBF6; color:var(--steel); }
         .btn-delete { background:var(--danger-bg); color:var(--danger); }
+        
+        /* Pagination Styles */
+        .pagination { display:flex; gap:4px; align-items:center; justify-content:center; margin-top:20px; }
+        .pagination .page-link { 
+            border:1px solid var(--line); 
+            border-radius:6px; 
+            padding:6px 12px; 
+            font-size:12px; 
+            font-weight:600; 
+            color:var(--steel); 
+            background:#fff; 
+            text-decoration:none;
+            transition:all 0.2s;
+        }
+        .pagination .page-link:hover { 
+            background:var(--paper); 
+            color:var(--navy); 
+            border-color:var(--navy);
+        }
+        .pagination .page-item.active .page-link { 
+            background:var(--navy); 
+            color:#fff; 
+            border-color:var(--navy); 
+        }
+        .pagination .page-item.disabled .page-link { 
+            color:var(--ink-soft); 
+            pointer-events:none; 
+            opacity:0.5;
+        }
     </style>
 
     <div class="section-head">
@@ -157,8 +186,26 @@
         
         <!-- Pagination -->
         @if ($contracts->hasPages())
-            <div class="d-flex justify-content-center mt-4">
-                {{ $contracts->links() }}
+            <div class="pagination">
+                @if ($contracts->onFirstPage())
+                    <span class="page-item disabled"><span class="page-link">Previous</span></span>
+                @else
+                    <a class="page-link" href="{{ $contracts->previousPageUrl() }}">Previous</a>
+                @endif
+                
+                @foreach ($contracts->getUrlRange(1, $contracts->lastPage()) as $url => $page)
+                    @if ($page == $contracts->currentPage())
+                        <span class="page-item active"><span class="page-link">{{ $page }}</span></span>
+                    @else
+                        <a class="page-link" href="{{ $url }}">{{ $page }}</a>
+                    @endif
+                @endforeach
+                
+                @if ($contracts->hasMorePages())
+                    <a class="page-link" href="{{ $contracts->nextPageUrl() }}">Next</a>
+                @else
+                    <span class="page-item disabled"><span class="page-link">Next</span></span>
+                @endif
             </div>
         @endif
     </div>
