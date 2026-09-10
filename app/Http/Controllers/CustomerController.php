@@ -58,8 +58,11 @@ class CustomerController extends Controller
 
         $customer = Customer::create($validated);
 
-        // Send email notification for customer creation
-        $this->notificationService->sendCustomerCreated($customer, auth()->user());
+        // Send email notification for customer creation asynchronously
+        $currentUser = auth()->user();
+        dispatch(function () use ($customer, $currentUser) {
+            $this->notificationService->sendCustomerCreated($customer, $currentUser);
+        })->afterResponse();
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -84,8 +87,11 @@ class CustomerController extends Controller
 
         $customer = Customer::create($validated);
 
-        // Send email notification for customer creation
-        $this->notificationService->sendCustomerCreated($customer, auth()->user());
+        // Send email notification for customer creation asynchronously
+        $currentUser = auth()->user();
+        dispatch(function () use ($customer, $currentUser) {
+            $this->notificationService->sendCustomerCreated($customer, $currentUser);
+        })->afterResponse();
 
         return response()->json([
             'success' => true,
@@ -121,13 +127,15 @@ class CustomerController extends Controller
             Contract::where('customer_name', $customer->name)->update(['area' => $customer->region]);
         }
 
-        // Send email notification if status changed
-        if ($oldStatus !== $newStatus) {
-            $this->notificationService->sendCustomerStatusChanged($customer, $oldStatus, $newStatus, auth()->user());
-        } else {
-            // Send email notification for customer update (only when status didn't change)
-            $this->notificationService->sendCustomerUpdated($customer, auth()->user());
-        }
+        // Send email notification asynchronously
+        $currentUser = auth()->user();
+        dispatch(function () use ($customer, $oldStatus, $newStatus, $currentUser) {
+            if ($oldStatus !== $newStatus) {
+                $this->notificationService->sendCustomerStatusChanged($customer, $oldStatus, $newStatus, $currentUser);
+            } else {
+                $this->notificationService->sendCustomerUpdated($customer, $currentUser);
+            }
+        })->afterResponse();
 
         if ($request->expectsJson()) {
             return response()->json([

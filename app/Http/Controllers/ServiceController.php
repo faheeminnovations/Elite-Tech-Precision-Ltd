@@ -91,8 +91,11 @@ class ServiceController extends Controller
             $service,
         );
 
-        // Send email notification for service creation
-        $this->notificationService->sendServiceCreated($service, auth()->user());
+        // Send email notification for service creation asynchronously
+        $currentUser = auth()->user();
+        dispatch(function () use ($service, $currentUser) {
+            $this->notificationService->sendServiceCreated($service, $currentUser);
+        })->afterResponse();
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -149,20 +152,22 @@ class ServiceController extends Controller
             $service,
         );
 
-        // Send email notification if status changed (using the specific status change method)
-        if ($oldStatus !== $newStatus) {
-            $this->notificationService->sendStatusUpdate(
-                'Service',
-                $service->job_ref,
-                $oldStatus,
-                $newStatus,
-                'Status Update',
-                auth()->user()
-            );
-        } else {
-            // Send email notification for service update (only when status didn't change)
-            $this->notificationService->sendServiceUpdated($service, auth()->user());
-        }
+        // Send email notification asynchronously
+        $currentUser = auth()->user();
+        dispatch(function () use ($service, $oldStatus, $newStatus, $currentUser) {
+            if ($oldStatus !== $newStatus) {
+                $this->notificationService->sendStatusUpdate(
+                    'Service',
+                    $service->job_ref,
+                    $oldStatus,
+                    $newStatus,
+                    'Status Update',
+                    $currentUser
+                );
+            } else {
+                $this->notificationService->sendServiceUpdated($service, $currentUser);
+            }
+        })->afterResponse();
 
         if ($request->expectsJson()) {
             return response()->json([

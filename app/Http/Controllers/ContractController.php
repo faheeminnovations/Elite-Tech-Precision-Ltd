@@ -73,8 +73,11 @@ class ContractController extends Controller
 
         $contract = Contract::create($validated);
 
-        // Send email notification for contract creation
-        $this->notificationService->sendContractCreated($contract, auth()->user());
+        // Send email notification for contract creation asynchronously
+        $currentUser = auth()->user();
+        dispatch(function () use ($contract, $currentUser) {
+            $this->notificationService->sendContractCreated($contract, $currentUser);
+        })->afterResponse();
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -119,13 +122,15 @@ class ContractController extends Controller
 
         $contract->update($validated);
 
-        // Send email notification if status changed
-        if ($oldStatus !== $newStatus) {
-            $this->notificationService->sendContractStatusChanged($contract, $oldStatus, $newStatus, auth()->user());
-        } else {
-            // Send email notification for contract update (only when status didn't change)
-            $this->notificationService->sendContractUpdated($contract, auth()->user());
-        }
+        // Send email notification asynchronously
+        $currentUser = auth()->user();
+        dispatch(function () use ($contract, $oldStatus, $newStatus, $currentUser) {
+            if ($oldStatus !== $newStatus) {
+                $this->notificationService->sendContractStatusChanged($contract, $oldStatus, $newStatus, $currentUser);
+            } else {
+                $this->notificationService->sendContractUpdated($contract, $currentUser);
+            }
+        })->afterResponse();
 
         if ($request->expectsJson()) {
             return response()->json([

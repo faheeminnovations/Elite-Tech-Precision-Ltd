@@ -49,8 +49,11 @@ class ResponseController extends Controller
 
         $response = Response::create($validated);
 
-        // Send email notification for response creation
-        $this->notificationService->sendResponseCreated($response, auth()->user());
+        // Send email notification for response creation asynchronously
+        $currentUser = auth()->user();
+        dispatch(function () use ($response, $currentUser) {
+            $this->notificationService->sendResponseCreated($response, $currentUser);
+        })->afterResponse();
 
         return $this->redirectAfterSave($request, 'Response recorded successfully.');
     }
@@ -77,13 +80,15 @@ class ResponseController extends Controller
 
         $response->update($validated);
 
-        // Send email notification if response status changed
-        if ($oldStatus !== $newStatus) {
-            $this->notificationService->sendResponseStatusChanged($response, $oldStatus, $newStatus, auth()->user());
-        } else {
-            // Send email notification for response update (only when status didn't change)
-            $this->notificationService->sendResponseUpdated($response, auth()->user());
-        }
+        // Send email notification asynchronously
+        $currentUser = auth()->user();
+        dispatch(function () use ($response, $oldStatus, $newStatus, $currentUser) {
+            if ($oldStatus !== $newStatus) {
+                $this->notificationService->sendResponseStatusChanged($response, $oldStatus, $newStatus, $currentUser);
+            } else {
+                $this->notificationService->sendResponseUpdated($response, $currentUser);
+            }
+        })->afterResponse();
 
         return redirect()->route('responses.index')->with('success', 'Response updated successfully.');
     }
