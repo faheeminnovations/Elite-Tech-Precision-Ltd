@@ -11,13 +11,13 @@
             @endif
 
             {{-- Pagination Elements --}}
-            @foreach ($paginator->getUrlRange(1, $paginator->lastPage()) as $url => $page)
-                @if ($page == $paginator->currentPage())
-                    <li class="page-item active"><span class="page-link">{{ $page }}</span></li>
+            @for ($i = 1; $i <= $paginator->lastPage(); $i++)
+                @if ($i == $paginator->currentPage())
+                    <li class="page-item active"><span class="page-link">{{ $i }}</span></li>
                 @else
-                    <li class="page-item"><a class="page-link" href="{{ $url }}">{{ $page }}</a></li>
+                    <li class="page-item"><a class="page-link" href="{{ $paginator->url($i) }}">{{ $i }}</a></li>
                 @endif
-            @endforeach
+            @endfor
 
             {{-- Next Page Link --}}
             @if ($paginator->hasMorePages())
