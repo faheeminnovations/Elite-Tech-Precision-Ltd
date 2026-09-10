@@ -28,7 +28,9 @@ class ContractController extends Controller
         $contracts = Contract::query()
             ->filter($filters)
             ->orderBy('next_ppm_due')
-            ->get();
+            ->paginate(30)
+            ->withQueryString()
+            ->onEachSide(1);
 
         $statusTabs = [
             'all' => ['label' => 'All', 'count' => Contract::count()],

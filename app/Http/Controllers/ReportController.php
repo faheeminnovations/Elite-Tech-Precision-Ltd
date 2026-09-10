@@ -184,7 +184,7 @@ class ReportController extends Controller
 
             // For collections, use simple pagination
             $page = request()->get('page', 1);
-            $perPage = 20;
+            $perPage = 30;
             $paginatedRows = new \Illuminate\Pagination\LengthAwarePaginator(
                 $rows->forPage($page, $perPage),
                 $rows->count(),

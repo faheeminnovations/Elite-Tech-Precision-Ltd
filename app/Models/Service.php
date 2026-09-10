@@ -48,6 +48,10 @@ class Service extends Model
         'updated_by',
     ];
 
+    protected $attributes = [
+        'remedial_required' => 'no',
+    ];
+
     protected $casts = [
         'visit_date' => 'date',
         'next_ppm_due' => 'date',

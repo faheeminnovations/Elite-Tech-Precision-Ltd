@@ -77,6 +77,7 @@ class ServiceController extends Controller
         // Set default values for fields that have database constraints but are optional in form
         $validated['service_type'] = $validated['service_type'] ?? 'PPM';
         $validated['status'] = $validated['status'] ?? 'scheduled';
+        $validated['remedial_required'] = $validated['remedial_required'] ?? 'no';
 
         $validated = $this->applyEngineerAssignment($validated);
         $validated['created_by'] = Auth::id();
@@ -135,6 +136,9 @@ class ServiceController extends Controller
         }
         if (!isset($validated['status']) || $validated['status'] === '') {
             $validated['status'] = $service->status ?? 'scheduled';
+        }
+        if (!isset($validated['remedial_required']) || $validated['remedial_required'] === '') {
+            $validated['remedial_required'] = $service->remedial_required ?? 'no';
         }
 
         $oldStatus = $service->status;

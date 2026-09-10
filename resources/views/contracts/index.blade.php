@@ -154,6 +154,13 @@
                 </tbody>
             </table>
         </div>
+        
+        <!-- Pagination -->
+        @if ($contracts->hasPages())
+            <div class="d-flex justify-content-center mt-4">
+                {{ $contracts->links() }}
+            </div>
+        @endif
     </div>
 
     <script>
