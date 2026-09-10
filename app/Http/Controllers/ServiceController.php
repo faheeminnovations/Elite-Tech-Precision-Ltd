@@ -149,9 +149,6 @@ class ServiceController extends Controller
             $service,
         );
 
-        // Send email notification for service update
-        $this->notificationService->sendServiceUpdated($service, auth()->user());
-
         // Send email notification if status changed (using the specific status change method)
         if ($oldStatus !== $newStatus) {
             $this->notificationService->sendStatusUpdate(
@@ -162,6 +159,10 @@ class ServiceController extends Controller
                 'Status Update',
                 auth()->user()
             );
+        } else {
+            // Send email notification for service update (only when status didn't change)
+            $this->notificationService->sendServiceUpdated($service, auth()->user());
+        }
         }
 
         if ($request->expectsJson()) {

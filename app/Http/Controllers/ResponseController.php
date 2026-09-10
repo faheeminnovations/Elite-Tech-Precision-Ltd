@@ -77,12 +77,12 @@ class ResponseController extends Controller
 
         $response->update($validated);
 
-        // Send email notification for response update
-        $this->notificationService->sendResponseUpdated($response, auth()->user());
-
         // Send email notification if response status changed
         if ($oldStatus !== $newStatus) {
             $this->notificationService->sendResponseStatusChanged($response, $oldStatus, $newStatus, auth()->user());
+        } else {
+            // Send email notification for response update (only when status didn't change)
+            $this->notificationService->sendResponseUpdated($response, auth()->user());
         }
 
         return redirect()->route('responses.index')->with('success', 'Response updated successfully.');

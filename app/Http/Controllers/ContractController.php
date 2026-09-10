@@ -119,12 +119,12 @@ class ContractController extends Controller
 
         $contract->update($validated);
 
-        // Send email notification for contract update
-        $this->notificationService->sendContractUpdated($contract, auth()->user());
-
         // Send email notification if status changed
         if ($oldStatus !== $newStatus) {
             $this->notificationService->sendContractStatusChanged($contract, $oldStatus, $newStatus, auth()->user());
+        } else {
+            // Send email notification for contract update (only when status didn't change)
+            $this->notificationService->sendContractUpdated($contract, auth()->user());
         }
 
         if ($request->expectsJson()) {
