@@ -121,12 +121,12 @@ class CustomerController extends Controller
             Contract::where('customer_name', $customer->name)->update(['area' => $customer->region]);
         }
 
-        // Send email notification for customer update
-        $this->notificationService->sendCustomerUpdated($customer, auth()->user());
-
         // Send email notification if status changed
         if ($oldStatus !== $newStatus) {
             $this->notificationService->sendCustomerStatusChanged($customer, $oldStatus, $newStatus, auth()->user());
+        } else {
+            // Send email notification for customer update (only when status didn't change)
+            $this->notificationService->sendCustomerUpdated($customer, auth()->user());
         }
 
         if ($request->expectsJson()) {
