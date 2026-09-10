@@ -18,10 +18,10 @@ class DatabaseSeeder extends Seeder
 
         // Admin user
         $admin = User::firstOrCreate(
-            ['email' => 'admin-elitetechprecision@devfaheem.com'],
+            ['email' => 'Info@elitedoors.ie'],
             [
                 'name' => 'Awais Ho',
-                'password' => bcrypt('admin123'),
+                'password' => bcrypt('awais@8080'),
                 'status' => 'active',
             ]
         );

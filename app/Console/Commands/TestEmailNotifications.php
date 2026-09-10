@@ -36,7 +36,7 @@ class TestEmailNotifications extends Command
         $this->info("Using test email: {$testEmail}");
 
         // Get admin user
-        $admin = User::where('email', 'admin-elitetechprecision@devfaheem.com')->first();
+        $admin = User::where('email', 'Info@elitedoors.ie')->first();
         if (!$admin) {
             $this->error('Admin user not found. Please run database seeder first.');
             return Command::FAILURE;
