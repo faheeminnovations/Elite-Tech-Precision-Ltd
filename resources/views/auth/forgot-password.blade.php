@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
     <title>EliteFlow — Forgot Password | Elite Tech Precision Ltd</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
@@ -101,6 +102,24 @@
             border-color: rgba(255, 107, 53, 0.7);
             box-shadow: 0 0 0 0.2rem rgba(255, 107, 53, 0.15);
         }
+        .password-wrapper {
+            position: relative;
+        }
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--ink-soft);
+            cursor: pointer;
+            padding: 0;
+            font-size: 16px;
+        }
+        .password-toggle:hover {
+            color: var(--ink);
+        }
         .btn-ef-primary {
             background:var(--orange);
             border:none;
@@ -173,7 +192,7 @@
             @csrf
             <div class="field-wrap">
                 <label class="form-label" for="email">Email address</label>
-                <input class="form-control" id="email" type="email" name="email" :value="old('email')" required autofocus>
+                <input class="form-control" id="email" type="email" name="email" value="{{ old('email') }}" required autofocus>
             </div>
 
             <button class="btn btn-ef-primary" type="submit"><i class="bi bi-envelope me-1"></i> Email Password Reset Link</button>

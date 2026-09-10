@@ -13,6 +13,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\EngineerActivityController;
 use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 
 Route::get('/', function () {
     if (auth()->check()) {
@@ -21,6 +22,8 @@ Route::get('/', function () {
 
     return redirect()->route('login');
 });
+
+// Auth routes are now handled in routes/auth.php
 
 Route::middleware(['auth', 'role:admin|engineer'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
