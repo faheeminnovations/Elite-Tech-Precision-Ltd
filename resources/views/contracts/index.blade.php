@@ -40,7 +40,9 @@
         .btn-delete { background:var(--danger-bg); color:var(--danger); }
         
         /* Pagination Styles */
-        .pagination { display:flex; gap:4px; align-items:center; justify-content:center; margin-top:20px; }
+        .pagination-container { margin-top:20px; }
+        .pagination { display:flex; gap:4px; align-items:center; justify-content:center; margin:0; padding:0; list-style:none; }
+        .pagination .page-item { margin:0; }
         .pagination .page-link { 
             border:1px solid var(--line); 
             border-radius:6px; 
@@ -51,6 +53,7 @@
             background:#fff; 
             text-decoration:none;
             transition:all 0.2s;
+            display:block;
         }
         .pagination .page-link:hover { 
             background:var(--paper); 
@@ -186,26 +189,8 @@
         
         <!-- Pagination -->
         @if ($contracts->hasPages())
-            <div class="pagination">
-                @if ($contracts->onFirstPage())
-                    <span class="page-item disabled"><span class="page-link">Previous</span></span>
-                @else
-                    <a class="page-link" href="{{ $contracts->previousPageUrl() }}">Previous</a>
-                @endif
-                
-                @foreach ($contracts->getUrlRange(1, $contracts->lastPage()) as $url => $page)
-                    @if ($page == $contracts->currentPage())
-                        <span class="page-item active"><span class="page-link">{{ $page }}</span></span>
-                    @else
-                        <a class="page-link" href="{{ $url }}">{{ $page }}</a>
-                    @endif
-                @endforeach
-                
-                @if ($contracts->hasMorePages())
-                    <a class="page-link" href="{{ $contracts->nextPageUrl() }}">Next</a>
-                @else
-                    <span class="page-item disabled"><span class="page-link">Next</span></span>
-                @endif
+            <div class="pagination-container">
+                {{ $contracts->appends(request()->query())->links('pagination.custom') }}
             </div>
         @endif
     </div>
