@@ -237,21 +237,29 @@
     </div>
 
     <script>
-        const customerMap = @json($customers->mapWithKeys(fn ($c) => [$c->name => ['area' => $c->region, 'email' => $c->email]]));
+        // Optimize customer data structure with abbreviated keys for smaller payload
+        const customerMap = @json($customers->mapWithKeys(fn ($c) => [$c->name => ['a' => $c->region, 'e' => $c->email]]));
         let currentStep = 1;
         const totalSteps = 3;
+        
+        // Cache DOM elements for better performance
+        const wizardSteps = document.querySelectorAll('.wizard-step-content');
+        const stepIndicators = document.querySelectorAll('.wizard-steps .step');
+        const customerNameSelect = document.getElementById('customerName');
+        const customerNameError = document.getElementById('customer_name_error');
+        const areaSelect = document.querySelector('select[name="area"]');
+        const customerEmailInput = document.getElementById('customerEmail');
 
         function showStep(step) {
-            // Hide all steps
-            document.querySelectorAll('.wizard-step-content').forEach(el => {
-                el.classList.remove('active');
-            });
+            // Hide all steps at once for better performance
+            wizardSteps.forEach(el => el.classList.remove('active'));
             
             // Show current step
-            document.querySelector(`.wizard-step-content[data-step="${step}"]`).classList.add('active');
+            const targetStep = document.querySelector(`.wizard-step-content[data-step="${step}"]`);
+            if (targetStep) targetStep.classList.add('active');
             
-            // Update step indicators
-            document.querySelectorAll('.wizard-steps .step').forEach(el => {
+            // Update step indicators efficiently
+            stepIndicators.forEach(el => {
                 const stepNum = parseInt(el.dataset.step);
                 el.classList.remove('active', 'completed');
                 if (stepNum === step) {
@@ -267,13 +275,12 @@
         function nextStep(current) {
             // Validate current step before proceeding
             if (current === 1) {
-                const customerName = document.querySelector('[name="customer_name"]').value;
-                const errorDiv = document.getElementById('customer_name_error');
+                const customerName = customerNameSelect.value;
                 if (!customerName) {
-                    errorDiv.style.display = 'block';
+                    customerNameError.style.display = 'block';
                     return;
                 } else {
-                    errorDiv.style.display = 'none';
+                    customerNameError.style.display = 'none';
                 }
             }
             
@@ -305,27 +312,24 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Add new customer to the select dropdown
-                    const select = document.getElementById('customerName');
+                    // Add new customer to the select dropdown efficiently
                     const option = document.createElement('option');
                     option.value = data.customer.name;
                     option.dataset.area = data.customer.region;
                     option.dataset.email = data.customer.email;
                     option.text = data.customer.name + (data.customer.email ? ' (' + data.customer.email + ')' : '');
                     option.selected = true;
-                    select.appendChild(option);
+                    customerNameSelect.appendChild(option);
                     
-                    // Update customer map
+                    // Update customer map with abbreviated keys
                     customerMap[data.customer.name] = {
-                        area: data.customer.region,
-                        email: data.customer.email
+                        a: data.customer.region,
+                        e: data.customer.email
                     };
                     
                     // Auto-fill the form fields
-                    const areaSelect = document.querySelector('select[name="area"]');
                     if (areaSelect && data.customer.region) areaSelect.value = data.customer.region;
-                    const emailInput = document.getElementById('customerEmail');
-                    if (emailInput && data.customer.email) emailInput.value = data.customer.email;
+                    if (customerEmailInput && data.customer.email) customerEmailInput.value = data.customer.email;
                     
                     // Close modal and reset form
                     const modal = bootstrap.Modal.getInstance(document.getElementById('addCustomerModal'));
@@ -358,29 +362,26 @@
             });
         }
 
-        // Handle Select2 change event
+        // Handle Select2 change event with optimized performance
         $(document).ready(function() {
             $('#customerName').on('select2:select', function(e) {
                 const data = customerMap[e.params.data.id];
                 if (!data) return;
-                const areaSelect = document.querySelector('select[name="area"]');
-                if (areaSelect && data.area) areaSelect.value = data.area;
-                const emailInput = document.getElementById('customerEmail');
-                if (emailInput && data.email) emailInput.value = data.email;
+                if (areaSelect && data.a) areaSelect.value = data.a;
+                if (customerEmailInput && data.e) customerEmailInput.value = data.e;
             });
 
             $('#customerName').on('select2:clear', function(e) {
-                const areaSelect = document.querySelector('select[name="area"]');
                 if (areaSelect) areaSelect.value = '';
-                const emailInput = document.getElementById('customerEmail');
-                if (emailInput) emailInput.value = '';
+                if (customerEmailInput) customerEmailInput.value = '';
             });
 
-            // Initialize Select2 for customer dropdown
+            // Initialize Select2 for customer dropdown with optimized settings
             $('#customerName').select2({
                 theme: 'bootstrap-5',
                 width: '100%',
-                placeholder: 'Select a customer'
+                placeholder: 'Select a customer',
+                minimumResultsForSearch: 10 // Only show search if more than 10 items
             });
         });
     </script>

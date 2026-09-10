@@ -39,7 +39,7 @@ class ResponseController extends Controller
     public function create(): View
     {
         return view('responses.create', [
-            'customers' => Customer::orderBy('name')->get(['name', 'email', 'region']),
+            'customers' => Customer::orderBy('name')->select(['name', 'email', 'region'])->get(),
         ]);
     }
 
@@ -67,7 +67,7 @@ class ResponseController extends Controller
     {
         return view('responses.edit', [
             'response' => $response,
-            'customers' => Customer::orderBy('name')->get(['name', 'email', 'region']),
+            'customers' => Customer::orderBy('name')->select(['name', 'email', 'region'])->get(),
         ]);
     }
 

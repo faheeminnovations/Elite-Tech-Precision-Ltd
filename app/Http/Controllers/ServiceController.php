@@ -66,7 +66,7 @@ class ServiceController extends Controller
     {
         return view('services.create', [
             'engineers' => $this->engineerOptions(),
-            'customers' => Customer::orderBy('name')->get(['name', 'email', 'region']),
+            'customers' => Customer::orderBy('name')->select(['name', 'email', 'region'])->get(),
         ]);
     }
 
@@ -121,7 +121,7 @@ class ServiceController extends Controller
         return view('services.edit', [
             'service' => $service,
             'engineers' => $this->engineerOptions(),
-            'customers' => Customer::orderBy('name')->get(['name', 'email', 'region']),
+            'customers' => Customer::orderBy('name')->select(['name', 'email', 'region'])->get(),
         ]);
     }
 

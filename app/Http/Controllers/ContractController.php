@@ -57,7 +57,7 @@ class ContractController extends Controller
     public function create(): View
     {
         return view('contracts.create', [
-            'customers' => Customer::orderBy('name')->get(['name', 'region', 'category', 'email']),
+            'customers' => Customer::orderBy('name')->select(['name', 'region', 'category', 'email'])->get(),
             'areas' => Customer::AREAS,
         ]);
     }
@@ -99,7 +99,7 @@ class ContractController extends Controller
     {
         return view('contracts.edit', [
             'contract' => $contract,
-            'customers' => Customer::orderBy('name')->get(['name', 'region', 'category', 'email']),
+            'customers' => Customer::orderBy('name')->select(['name', 'region', 'category', 'email'])->get(),
             'areas' => Customer::AREAS,
         ]);
     }
