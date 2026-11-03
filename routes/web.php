@@ -12,6 +12,8 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\EngineerActivityController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\CustomerSiteController;
+use App\Http\Controllers\DoorController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
@@ -30,18 +32,17 @@ Route::middleware(['auth', 'role:admin|engineer'])->group(function () {
 
     Route::resource('customers', CustomerController::class);
     Route::post('/customers/quick-create', [CustomerController::class, 'quickCreate'])->name('customers.quick-create');
+    Route::resource('sites', CustomerSiteController::class);
+    Route::resource('doors', DoorController::class);
     Route::resource('contracts', ContractController::class);
     Route::resource('services', ServiceController::class);
     Route::resource('responses', ResponseController::class);
-
-    Route::get('/service-history', [ServiceController::class, 'history'])->name('service-history');
 
     Route::get('/search', [SearchController::class, 'index'])->name('search');
 
     Route::get('/export/customers', [ExportController::class, 'customers'])->name('export.customers');
     Route::get('/export/contracts', [ExportController::class, 'contracts'])->name('export.contracts');
     Route::get('/export/services', [ExportController::class, 'services'])->name('export.services');
-    Route::get('/export/service-history', [ExportController::class, 'serviceHistory'])->name('export.service-history');
     Route::get('/export/responses', [ExportController::class, 'responses'])->name('export.responses');
     Route::get('/export/reports', [ExportController::class, 'reports'])->name('export.reports');
 

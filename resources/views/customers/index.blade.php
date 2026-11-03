@@ -42,8 +42,8 @@
 
     <div class="section-head" style="margin-bottom:24px;">
         <div>
-            <h2>Customers</h2>
-            <div class="section-sub">EliteFlow customer register and maintenance status</div>
+            <h2>Customer Directory</h2>
+            <div class="section-sub">Business directory with regions and service locations</div>
         </div>
         <a href="{{ route('customers.create') }}" class="btn btn-ef-primary"><i class="bi bi-plus-lg"></i> Add Customer</a>
     </div>
@@ -56,22 +56,22 @@
             label="customer"
             export-route="export.customers"
         >
-            <select name="status" class="form-select" style="width:180px;">
-                <option value="">All contract statuses</option>
-                @foreach($statuses as $value => $label)
-                    <option value="{{ $value }}" @selected(($filters['status'] ?? '') === $value)>{{ $label }}</option>
+            <select name="region" class="form-select" style="width:160px;">
+                <option value="">All regions</option>
+                @foreach($regions as $region)
+                    <option value="{{ $region }}" @selected(($filters['region'] ?? '') === $region)>{{ $region }}</option>
                 @endforeach
             </select>
-            <select name="category" class="form-select" style="width:170px;">
+            <select name="category" class="form-select" style="width:150px;">
                 <option value="">All categories</option>
                 @foreach($categories as $value => $label)
                     <option value="{{ $value }}" @selected(($filters['category'] ?? '') === $value)>{{ $label }}</option>
                 @endforeach
             </select>
-            <select name="region" class="form-select" style="width:160px;">
-                <option value="">All areas</option>
-                @foreach($regions as $region)
-                    <option value="{{ $region }}" @selected(($filters['region'] ?? '') === $region)>{{ $region }}</option>
+            <select name="status" class="form-select" style="width:140px;">
+                <option value="">All statuses</option>
+                @foreach($statuses as $value => $label)
+                    <option value="{{ $value }}" @selected(($filters['status'] ?? '') === $value)>{{ $label }}</option>
                 @endforeach
             </select>
             <input name="search" value="{{ $filters['search'] ?? '' }}" class="form-control" style="width:220px;" placeholder="Search customer or site…">
@@ -81,31 +81,32 @@
             <table class="ef-table">
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>Category</th>
-                            <th>Job Ref Number</th>
-                            <th>Job Details</th>
-                            <th>Date of Completion</th>
-                            <th>Phone</th>
-                            <th>Email</th>
+                            <th>Customer</th>
+                            <th>Region</th>
+                            <th>Sites</th>
                             <th>Status</th>
-                            <th>Area</th>
+                            <th>Contact</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($customers as $customer)
                             <tr>
-                                <td class="cell-primary">{{ $customer->name }}</td>
                                 <td>
-                                    @php $cat = $customer->category ?? 'new'; @endphp
-                                    <span class="tag {{ $cat === 'chain' ? 'tag-completed' : 'tag-upcoming' }}"><span>{{ $categories[$cat] ?? ucfirst($cat) }}</span></span>
+                                    <div class="cell-primary">{{ $customer->name }}</div>
+                                    <div class="cell-sub" style="font-size:11px;">
+                                        @php $cat = $customer->category ?? 'new'; @endphp
+                                        <span class="tag {{ $cat === 'chain' ? 'tag-completed' : 'tag-upcoming' }}" style="font-size:10px;padding:2px 6px;"><span>{{ $categories[$cat] ?? ucfirst($cat) }}</span></span>
+                                    </div>
                                 </td>
-                                <td class="mono cell-primary">{{ $customer->job_ref ?? '—' }}</td>
-                                <td class="cell-sub">{{ $customer->job_details ?? '—' }}</td>
-                                <td class="mono">{{ $customer->completion_date ? $customer->completion_date->format('d/m/Y') : '—' }}</td>
-                                <td class="phone-cell">{{ $customer->phone ?? '—' }}</td>
-                                <td class="cell-sub">{{ $customer->email ?? '—' }}</td>
+                                <td class="cell-sub">{{ $customer->region ?? '—' }}</td>
+                                <td class="cell-sub">
+                                    @if($customer->sites && is_array($customer->sites) && count($customer->sites) > 0)
+                                        <div style="font-size:12px;">{{ implode(', ', $customer->sites) }}</div>
+                                    @else
+                                        —
+                                    @endif
+                                </td>
                                 <td>
                                     @php
                                         $status = $customer->status ?? 'new';
@@ -115,21 +116,18 @@
                                             'overdue' => ['tag-overdue', 'Overdue'],
                                             'expiring' => ['tag-pending', 'Expiring'],
                                             'nocontract' => ['tag-nocontract', 'No Contract'],
-                                            'accepted' => ['tag-accepted', 'Accepted'],
-                                            'declined' => ['tag-declined', 'Declined'],
-                                            'awaiting' => ['tag-awaiting', 'Awaiting'],
                                             'new' => ['tag-upcoming', 'New'],
-                                            'previous' => ['tag-nocontract', 'Previous'],
-                                            'updated' => ['tag-pending', 'Updated'],
                                         ];
                                         [$cls, $label] = $statusLabels[$status] ?? ['tag-awaiting', ucfirst($status)];
                                     @endphp
                                     <span class="tag {{ $cls }}"><span>{{ $label }}</span></span>
                                 </td>
-                                <td class="cell-sub">{{ $customer->region ?? '—' }}</td>
+                                <td class="cell-sub">
+                                    <div style="font-size:12px;">{{ $customer->email ?? '—' }}</div>
+                                    <div style="font-size:11px;color:var(--ink-soft);">{{ $customer->phone ?? '' }}</div>
+                                </td>
                                 <td>
                                     <div class="crud-actions">
-                                        <a class="btn btn-view" href="{{ route('customers.show', $customer) }}" title="View"><i class="bi bi-eye"></i></a>
                                         <a class="btn btn-edit" href="{{ route('customers.edit', $customer) }}" title="Edit"><i class="bi bi-pencil"></i></a>
                                         <button class="btn btn-delete" onclick="deleteCustomer('{{ route('customers.destroy', $customer) }}', '{{ $customer->name }}')" title="Delete"><i class="bi bi-trash"></i></button>
                                     </div>
@@ -137,7 +135,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="10">
+                                <td colspan="6">
                                     <div class="empty-note">
                                         <i class="bi bi-people d-block mb-2" style="font-size:28px;color:var(--line);"></i>
                                         @if(request()->hasAny(['search', 'status', 'region']))

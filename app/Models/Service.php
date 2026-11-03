@@ -26,6 +26,14 @@ class Service extends Model
         'Inspection' => 'Inspection',
     ];
 
+    public const MAILING_FREQUENCIES = [
+        'daily' => 'Daily',
+        'weekly' => 'Weekly',
+        'monthly' => 'Monthly',
+        'quarterly' => 'Quarterly',
+        'yearly' => 'Yearly',
+    ];
+
     protected $fillable = [
         'job_ref',
         'customer_name',
@@ -46,6 +54,12 @@ class Service extends Model
         'next_ppm_due',
         'created_by',
         'updated_by',
+        'mailing_frequency',
+        'last_email_sent',
+        'next_email_due',
+        'region_id',
+        'site_id',
+        'door_id',
     ];
 
     protected $attributes = [
@@ -55,7 +69,29 @@ class Service extends Model
     protected $casts = [
         'visit_date' => 'date',
         'next_ppm_due' => 'date',
+        'last_email_sent' => 'date',
+        'next_email_due' => 'date',
     ];
+
+    public function region()
+    {
+        return $this->belongsTo(Region::class);
+    }
+
+    public function site()
+    {
+        return $this->belongsTo(CustomerSite::class, 'site_id');
+    }
+
+    public function door()
+    {
+        return $this->belongsTo(Door::class);
+    }
+
+    public function notificationLogs()
+    {
+        return $this->morphMany(NotificationLog::class, 'notifiable');
+    }
 
     public function engineer(): BelongsTo
     {

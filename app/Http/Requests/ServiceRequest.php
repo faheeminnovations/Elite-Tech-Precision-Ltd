@@ -39,6 +39,10 @@ class ServiceRequest extends FormRequest
             'remedial_required' => ['nullable', 'in:yes,no'],
             'remedial_details' => ['nullable', 'string'],
             'next_ppm_due' => ['nullable', 'date'],
+            'region_id' => ['nullable', 'exists:regions,id'],
+            'site_id' => ['nullable', 'exists:customer_sites,id'],
+            'mailing_frequency' => ['nullable', 'string', 'in:daily,weekly,monthly,quarterly,yearly'],
+            'next_email_due' => ['nullable', 'date'],
         ];
     }
 
@@ -73,5 +77,28 @@ class ServiceRequest extends FormRequest
         }
 
         parent::failedValidation($validator);
+    }
+
+    protected function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            // Validate that site belongs to the selected customer
+            $customerId = $this->input('customer_name');
+            $siteId = $this->input('site_id');
+            $regionId = $this->input('region_id');
+
+            if ($siteId && $customerId) {
+                $customer = \App\Models\Customer::where('name', $customerId)->first();
+                if ($customer) {
+                    $site = \App\Models\CustomerSite::find($siteId);
+                    if (!$site || $site->customer_id !== $customer->id) {
+                        $validator->errors()->add('site_id', 'Selected site does not belong to this customer.');
+                    }
+                    if ($regionId && $site && $site->region_id != $regionId) {
+                        $validator->errors()->add('site_id', 'Selected site does not belong to the selected region.');
+                    }
+                }
+            }
+        });
     }
 }

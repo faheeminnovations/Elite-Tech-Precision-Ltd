@@ -127,39 +127,6 @@ class ExportController extends Controller
         ]));
     }
 
-    public function serviceHistory(Request $request): StreamedResponse
-    {
-        $request->merge(['status' => 'completed']);
-
-        $services = Service::query()
-            ->completed()
-            ->filter($request->only(['search', 'engineer_id', 'date_from', 'date_to']))
-            ->latest('visit_date')
-            ->get();
-
-        return CsvExporter::download('service-history-' . now()->format('Y-m-d') . '.csv', [
-            'Job Ref',
-            'Customer',
-            'Site',
-            'Engineer',
-            'Completed Date',
-            'Service Type',
-            'Work Completed',
-            'Recommendations',
-            'Notes',
-        ], $services->map(fn (Service $s) => [
-            $s->job_ref,
-            $s->customer_name,
-            $s->site_installation,
-            $s->engineer_name,
-            CsvExporter::formatDate($s->visit_date),
-            $s->service_type,
-            $s->work_completed,
-            $s->recommendations,
-            $s->job_notes,
-        ]));
-    }
-
     public function responses(Request $request): StreamedResponse
     {
         $responses = Response::query()
@@ -242,13 +209,6 @@ class ExportController extends Controller
 
             'customer-responses' => $this->responses(new Request([
                 'search' => $customerName,
-                'date_from' => $dateFrom,
-                'date_to' => $dateTo,
-            ])),
-
-            'service-history' => $this->serviceHistory(new Request([
-                'search' => $customerName,
-                'engineer_id' => $engineerId,
                 'date_from' => $dateFrom,
                 'date_to' => $dateTo,
             ])),

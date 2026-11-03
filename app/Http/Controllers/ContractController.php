@@ -6,6 +6,8 @@ use App\Http\Requests\ContractRequest;
 use App\Mail\ContractStatusMail;
 use App\Models\Contract;
 use App\Models\Customer;
+use App\Models\CustomerSite;
+use App\Models\Region;
 use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -58,9 +60,31 @@ class ContractController extends Controller
 
     public function create(): View
     {
+        $customers = Customer::with(['customerSites', 'customerSites.doors'])->orderBy('name')->get();
+        
+        // Pre-process customer sites with doors for JavaScript
+        $customerSitesData = $customers->mapWithKeys(function ($customer) {
+            return [
+                $customer->id => $customer->customerSites->map(function ($site) {
+                    return [
+                        'id' => $site->id,
+                        'name' => $site->site_name,
+                        'region_id' => $site->region_id,
+                        'doors' => $site->doors ? $site->doors->map(function ($door) {
+                            return [
+                                'id' => $door->id,
+                                'name' => $door->door_name
+                            ];
+                        })->toArray() : []
+                    ];
+                })->toArray()
+            ];
+        })->toArray();
+
         return view('contracts.create', [
-            'customers' => Customer::orderBy('name')->select(['name', 'region', 'category', 'email'])->get(),
-            'areas' => Customer::AREAS,
+            'customers' => $customers,
+            'customerSitesData' => $customerSitesData,
+            'regions' => Region::orderBy('name')->get(),
         ]);
     }
 
@@ -72,6 +96,11 @@ class ContractController extends Controller
         // Set default values for fields that have database constraints but are optional in form
         $validated['frequency'] = $validated['frequency'] ?? '6 monthly';
         $validated['status'] = $validated['status'] ?? 'upcoming';
+
+        // Calculate next email due date if mailing frequency is set but next_email_due is not provided
+        if (!empty($validated['mailing_frequency']) && empty($validated['next_email_due'])) {
+            $validated['next_email_due'] = $this->calculateNextEmailDate($validated['mailing_frequency']);
+        }
 
         $contract = Contract::create($validated);
 
@@ -99,10 +128,32 @@ class ContractController extends Controller
 
     public function edit(Contract $contract): View
     {
+        $customers = Customer::with(['customerSites', 'customerSites.doors'])->orderBy('name')->get();
+        
+        // Pre-process customer sites with doors for JavaScript
+        $customerSitesData = $customers->mapWithKeys(function ($customer) {
+            return [
+                $customer->id => $customer->customerSites->map(function ($site) {
+                    return [
+                        'id' => $site->id,
+                        'name' => $site->site_name,
+                        'region_id' => $site->region_id,
+                        'doors' => $site->doors ? $site->doors->map(function ($door) {
+                            return [
+                                'id' => $door->id,
+                                'name' => $door->door_name
+                            ];
+                        })->toArray() : []
+                    ];
+                })->toArray()
+            ];
+        })->toArray();
+
         return view('contracts.edit', [
             'contract' => $contract,
-            'customers' => Customer::orderBy('name')->select(['name', 'region', 'category', 'email'])->get(),
-            'areas' => Customer::AREAS,
+            'customers' => $customers,
+            'customerSitesData' => $customerSitesData,
+            'regions' => Region::orderBy('name')->get(),
         ]);
     }
 
@@ -117,6 +168,11 @@ class ContractController extends Controller
         }
         if (!isset($validated['status']) || $validated['status'] === '') {
             $validated['status'] = $contract->status ?? 'upcoming';
+        }
+
+        // Calculate next email due date if mailing frequency is set but next_email_due is not provided
+        if (!empty($validated['mailing_frequency']) && empty($validated['next_email_due'])) {
+            $validated['next_email_due'] = $this->calculateNextEmailDate($validated['mailing_frequency']);
         }
 
         $oldStatus = $contract->status;
@@ -177,5 +233,17 @@ class ContractController extends Controller
         }
 
         return Customer::where('name', $customerName)->value('region');
+    }
+
+    private function calculateNextEmailDate(string $frequency): ?\Carbon\Carbon
+    {
+        return match($frequency) {
+            'daily' => now()->addDay(),
+            'weekly' => now()->addWeek(),
+            'monthly' => now()->addMonth(),
+            'quarterly' => now()->addMonths(3),
+            'yearly' => now()->addYear(),
+            default => null,
+        };
     }
 }

@@ -21,7 +21,6 @@ class ReportController extends Controller
         'expiring-contracts' => 'Contracts Expiring Soon',
         'customers-no-contract' => 'Customers Without a Contract',
         'customer-responses' => 'Customer Responses',
-        'service-history' => 'Completed PPM Records / Full Service History',
         'service-jobs' => 'Service Jobs',
         'contracts-register' => 'Contracts Register',
         'customer-register' => 'Customer Register',
@@ -240,13 +239,6 @@ class ReportController extends Controller
                 'date_to' => $dateTo,
             ])->when($customerName, fn ($q) => $q->where('customer_name', $customerName))->orderBy('ppm_due'),
 
-            'service-history' => Service::completed()->filter([
-                'search' => $search,
-                'engineer_id' => $engineerFilter,
-                'date_from' => $dateFrom,
-                'date_to' => $dateTo,
-            ])->when($customerName || $system, fn ($q) => $q->when($customerName, fn ($q) => $q->where('customer_name', $customerName))->when($system, fn ($q) => $q->where('service_type', $system)))->orderBy('visit_date', 'desc'),
-
             'service-jobs' => Service::filter([
                 'search' => $search,
                 'engineer_id' => $engineerFilter,
@@ -310,14 +302,6 @@ class ReportController extends Controller
                 'reference' => $r->site_name,
                 'date' => $r->ppm_due,
                 'status' => $r->response,
-                'area' => Customer::where('name', $r->customer_name)->value('region'),
-            ],
-            'service-history' => [
-                'report' => 'Service History',
-                'customer' => $r->customer_name,
-                'reference' => $r->job_ref,
-                'date' => $r->visit_date,
-                'status' => $r->status,
                 'area' => Customer::where('name', $r->customer_name)->value('region'),
             ],
             'service-jobs' => [

@@ -27,3 +27,8 @@ Schedule::command('emails:send-no-contract-reminders')
 Schedule::command('emails:send-engineer-reminders')
     ->dailyAt('07:00')
     ->description('Send engineer task reminder emails');
+
+// Schedule contract and service mailing notifications to run every minute
+Schedule::command('mailing:dispatch')
+    ->everyMinute()
+    ->description('Dispatch contract and service mailing notifications based on mailing frequency');
