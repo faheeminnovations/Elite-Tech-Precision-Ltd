@@ -509,7 +509,7 @@
             }
 
             if (regionId) {
-                const filteredSites = sites.filter(s => s.region_id == regionId);
+                const filteredSites = sites.filter(s => String(s.region_id) === String(regionId));
                 if (filteredSites.length === 0) {
                     const option = document.createElement('option');
                     option.value = '';
@@ -620,13 +620,14 @@
                 if (customerData && customerData.r) {
                     for (let i = 0; i < regionSelect.options.length; i++) {
                         if (regionSelect.options[i].text === customerData.r) {
-                            regionSelect.selectedIndex = i;
-                            // Trigger change to load sites for this region
-                            $(regionSelect).trigger('change');
+                            regionSelect.value = regionSelect.options[i].value;
+                            const regionId = regionSelect.value;
+                            updateSitesDropdown(customerName, regionId);
                             break;
                         }
                     }
                 } else {
+                    regionSelect.value = '';
                     updateSitesDropdown(customerName);
                 }
             });
