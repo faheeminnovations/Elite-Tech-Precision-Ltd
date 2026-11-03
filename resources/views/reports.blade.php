@@ -161,29 +161,10 @@
         }
 
         function confirmExport() {
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    title: 'Export Report?',
-                    text: 'Are you sure you want to export this report to Excel?',
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'Yes, export it',
-                    cancelButtonText: 'Cancel'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        const form = document.getElementById('reportForm');
-                        const params = new URLSearchParams(new FormData(form));
-                        const url = @json(route('export.reports')) + '?' + params.toString();
-                        window.location.href = url;
-                    }
-                });
-            } else {
-                // Fallback to direct export if SweetAlert is not loaded
-                const form = document.getElementById('reportForm');
-                const params = new URLSearchParams(new FormData(form));
-                const url = @json(route('export.reports')) + '?' + params.toString();
-                window.location.href = url;
-            }
+            const form = document.getElementById('reportForm');
+            const params = new URLSearchParams(new FormData(form));
+            const url = @json(route('export.reports')) + '?' + params.toString();
+            window.location.href = url;
         }
     </script>
 </x-app-layout>

@@ -67,33 +67,29 @@
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label">Customer Name <span class="required-indicator">*</span></label>
-                        <div class="input-group">
-                            <select class="form-select" name="customer_name" id="customerName" required>
-                                <option value="">Select a customer</option>
-                                @foreach($customers as $customer)
-                                    <option value="{{ $customer->name }}" data-customer-id="{{ $customer->id }}" data-email="{{ $customer->email }}" {{ old('customer_name') == $customer->name ? 'selected' : '' }}>
-                                        {{ $customer->name }} @if($customer->email)({{ $customer->email }})@endif
-                                    </option>
-                                @endforeach
-                            </select>
-                            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addCustomerModal" title="Add new customer">
-                                <i class="bi bi-plus-circle"></i> Add
-                            </button>
-                        </div>
+                        <select class="form-select" name="customer_name" id="customerName" required>
+                            <option value="">Select a customer</option>
+                            @foreach($customers as $customer)
+                                <option value="{{ $customer->name }}" data-customer-id="{{ $customer->id }}" data-region="{{ $customer->region }}" {{ old('customer_name') == $customer->name ? 'selected' : '' }}>
+                                    {{ $customer->name }} @if($customer->email)({{ $customer->email }})@endif
+                                </option>
+                            @endforeach
+                        </select>
                         <div id="customer_name_error" class="text-danger mt-1" style="display: none; font-size: 12px;">Please select a customer name to proceed.</div>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Customer Contact Email</label>
-                        <input class="form-control" type="email" name="customer_email" id="customerEmail" value="{{ old('customer_email') }}">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Customer Contact</label>
-                        <input class="form-control" type="text" name="customer_contact" value="{{ old('customer_contact') }}">
+                        <label class="form-label">Region</label>
+                        <select class="form-select" name="region_id" id="regionSelect">
+                            <option value="">Select a customer first</option>
+                            @foreach($regions as $region)
+                                <option value="{{ $region->id }}" {{ old('region_id') == $region->id ? 'selected' : '' }}>{{ $region->name }}</option>
+                            @endforeach
+                        </select>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Site <span class="required-indicator">*</span></label>
                         <select class="form-select" name="site_id" id="siteSelect" required>
-                            <option value="">Select a customer first</option>
+                            <option value="">Select a customer and region first</option>
                         </select>
                     </div>
                     <div class="col-md-6">
@@ -217,7 +213,7 @@
         const stepIndicators = document.querySelectorAll('.wizard-steps .step');
         const customerNameSelect = document.getElementById('customerName');
         const customerNameError = document.getElementById('customer_name_error');
-        const customerEmailInput = document.getElementById('customerEmail');
+        const regionSelect = document.getElementById('regionSelect');
         const siteSelect = document.getElementById('siteSelect');
         const doorSelect = document.getElementById('doorSelect');
 
@@ -261,7 +257,7 @@
             }
         }
 
-        function updateSitesDropdown(customerId) {
+        function updateSitesDropdown(customerId, regionId = null) {
             const sites = customerSites[customerId] || [];
 
             siteSelect.innerHTML = '<option value="">Select a site</option>';
@@ -276,12 +272,30 @@
                 return;
             }
 
-            sites.forEach(site => {
-                const option = document.createElement('option');
-                option.value = site.id;
-                option.text = site.name;
-                siteSelect.appendChild(option);
-            });
+            if (regionId) {
+                const filteredSites = sites.filter(s => String(s.region_id) === String(regionId));
+                if (filteredSites.length === 0) {
+                    const option = document.createElement('option');
+                    option.value = '';
+                    option.text = 'No sites available for this region';
+                    option.disabled = true;
+                    siteSelect.appendChild(option);
+                } else {
+                    filteredSites.forEach(site => {
+                        const option = document.createElement('option');
+                        option.value = site.id;
+                        option.text = site.name;
+                        siteSelect.appendChild(option);
+                    });
+                }
+            } else {
+                sites.forEach(site => {
+                    const option = document.createElement('option');
+                    option.value = site.id;
+                    option.text = site.name;
+                    siteSelect.appendChild(option);
+                });
+            }
         }
 
         function updateDoorsDropdown(siteId) {
@@ -354,28 +368,56 @@
             }
         }
 
-        $(document).ready(function() {
+        window.onload = function() {
+            if (typeof $ === 'undefined') {
+                console.error('jQuery not loaded');
+                return;
+            }
+
             $('#customerName').on('select2:select', function(e) {
                 const selectedOption = e.params.data.element;
                 const customerId = $(selectedOption).data('customer-id');
-                const customerEmail = $(selectedOption).data('email');
+                const customerRegion = $(selectedOption).data('region');
                 
-                if (customerEmailInput && customerEmail) {
-                    customerEmailInput.value = customerEmail;
-                }
+                console.log('Customer selected:', { customerId, customerRegion });
 
-                if (customerId) {
+                // Enable region dropdown
+                regionSelect.disabled = false;
+
+                // Auto-select customer's region if available
+                if (customerRegion) {
+                    for (let i = 0; i < regionSelect.options.length; i++) {
+                        if (regionSelect.options[i].text === customerRegion) {
+                            regionSelect.value = regionSelect.options[i].value;
+                            const regionId = regionSelect.value;
+                            console.log('Auto-selected region:', { customerRegion, regionId });
+                            updateSitesDropdown(customerId, regionId);
+                            break;
+                        }
+                    }
+                } else {
+                    regionSelect.value = '';
                     updateSitesDropdown(customerId);
                 }
             });
 
             $('#customerName').on('select2:clear', function(e) {
-                if (customerEmailInput) customerEmailInput.value = '';
+                regionSelect.disabled = true;
+                regionSelect.value = '';
                 if (siteSelect) {
-                    siteSelect.innerHTML = '<option value="">Select a customer first</option>';
+                    siteSelect.innerHTML = '<option value="">Select a customer and region first</option>';
                 }
                 if (doorSelect) {
                     doorSelect.innerHTML = '<option value="">Select a site first</option>';
+                }
+            });
+
+            $('#regionSelect').on('change', function() {
+                const customerId = $('#customerName option:selected').data('customer-id');
+                const regionId = $(this).val();
+                console.log('Region changed:', { customerId, regionId });
+                if (customerId) {
+                    updateSitesDropdown(customerId, regionId);
                 }
             });
 
@@ -384,13 +426,16 @@
                 updateDoorsDropdown(siteId);
             });
 
+            // Initially disable region dropdown
+            regionSelect.disabled = true;
+
             $('#customerName').select2({
                 theme: 'bootstrap-5',
                 width: '100%',
                 placeholder: 'Select a customer',
                 minimumResultsForSearch: 10
             });
-        });
+        };
     </script>
     <script src="{{ asset('js/form-validation.js') }}"></script>
 </x-app-layout>

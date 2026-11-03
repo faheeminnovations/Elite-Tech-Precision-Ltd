@@ -480,7 +480,8 @@
     // Show success message with SweetAlert if present (after SweetAlert is loaded)
     document.addEventListener('DOMContentLoaded', function() {
         // Set default SweetAlert configuration for all alerts
-        if (typeof Swal !== 'undefined') {
+        if (typeof Swal !== 'undefined' && Swal !== null) {
+            Swal.defaults = Swal.defaults || {};
             Swal.defaults.customClass = {
                 popup: 'swal2-eliteflow',
                 confirmButton: 'btn btn-ef-primary',
