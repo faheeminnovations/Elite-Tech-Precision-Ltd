@@ -71,7 +71,7 @@
                             <select class="form-select" name="customer_name" id="customerName" required>
                                 <option value="">Select a customer</option>
                                 @foreach($customers as $customer)
-                                    <option value="{{ $customer->name }}" data-region="{{ $customer->region }}" data-email="{{ $customer->email }}" {{ old('customer_name') == $customer->name ? 'selected' : '' }}>
+                                    <option value="{{ $customer->name }}" data-customer-id="{{ $customer->id }}" data-email="{{ $customer->email }}" {{ old('customer_name') == $customer->name ? 'selected' : '' }}>
                                         {{ $customer->name }} @if($customer->email)({{ $customer->email }})@endif
                                     </option>
                                 @endforeach
@@ -89,6 +89,18 @@
                     <div class="col-md-6">
                         <label class="form-label">Customer Contact</label>
                         <input class="form-control" type="text" name="customer_contact" value="{{ old('customer_contact') }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Site <span class="required-indicator">*</span></label>
+                        <select class="form-select" name="site_id" id="siteSelect" required>
+                            <option value="">Select a customer first</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Door / Location <span class="text-muted" style="font-weight:400;">(Optional)</span></label>
+                        <select class="form-select" name="door_id" id="doorSelect">
+                            <option value="">Select a site first</option>
+                        </select>
                     </div>
                 </div>
                 
@@ -194,6 +206,9 @@
     </div>
 
     <script>
+        // Customer data with site information
+        const customerMap = @json($customers->mapWithKeys(fn ($c) => [$c->id => ['n' => $c->name, 'e' => $c->email]]));
+        const customerSites = @json($customerSitesData);
         let currentStep = 1;
         const totalSteps = 3;
 
@@ -203,6 +218,8 @@
         const customerNameSelect = document.getElementById('customerName');
         const customerNameError = document.getElementById('customer_name_error');
         const customerEmailInput = document.getElementById('customerEmail');
+        const siteSelect = document.getElementById('siteSelect');
+        const doorSelect = document.getElementById('doorSelect');
 
         function showStep(step) {
             wizardSteps.forEach(el => el.classList.remove('active'));
@@ -241,6 +258,59 @@
         function prevStep(current) {
             if (current > 1) {
                 showStep(current - 1);
+            }
+        }
+
+        function updateSitesDropdown(customerId) {
+            const sites = customerSites[customerId] || [];
+
+            siteSelect.innerHTML = '<option value="">Select a site</option>';
+            doorSelect.innerHTML = '<option value="">Select a site first</option>';
+
+            if (sites.length === 0) {
+                const option = document.createElement('option');
+                option.value = '';
+                option.text = 'No sites available for this customer';
+                option.disabled = true;
+                siteSelect.appendChild(option);
+                return;
+            }
+
+            sites.forEach(site => {
+                const option = document.createElement('option');
+                option.value = site.id;
+                option.text = site.name;
+                siteSelect.appendChild(option);
+            });
+        }
+
+        function updateDoorsDropdown(siteId) {
+            doorSelect.innerHTML = '<option value="">Select a door (optional)</option>';
+
+            if (!siteId) return;
+
+            // Find the site and its doors
+            let siteDoors = [];
+            Object.values(customerSites).forEach(sites => {
+                const site = sites.find(s => s.id == siteId);
+                if (site && site.doors) {
+                    siteDoors = site.doors;
+                }
+            });
+
+            if (siteDoors.length === 0) {
+                const option = document.createElement('option');
+                option.value = '';
+                option.text = 'No doors available for this site';
+                option.disabled = true;
+                doorSelect.appendChild(option);
+            } else {
+                siteDoors.forEach(door => {
+                    const option = document.createElement('option');
+                    option.value = door.id;
+                    option.text = door.name;
+                    doorSelect.appendChild(option);
+                });
             }
         }
 
@@ -287,15 +357,31 @@
         $(document).ready(function() {
             $('#customerName').on('select2:select', function(e) {
                 const selectedOption = e.params.data.element;
+                const customerId = $(selectedOption).data('customer-id');
                 const customerEmail = $(selectedOption).data('email');
                 
                 if (customerEmailInput && customerEmail) {
                     customerEmailInput.value = customerEmail;
                 }
+
+                if (customerId) {
+                    updateSitesDropdown(customerId);
+                }
             });
 
             $('#customerName').on('select2:clear', function(e) {
                 if (customerEmailInput) customerEmailInput.value = '';
+                if (siteSelect) {
+                    siteSelect.innerHTML = '<option value="">Select a customer first</option>';
+                }
+                if (doorSelect) {
+                    doorSelect.innerHTML = '<option value="">Select a site first</option>';
+                }
+            });
+
+            $('#siteSelect').on('change', function() {
+                const siteId = $(this).val();
+                updateDoorsDropdown(siteId);
             });
 
             $('#customerName').select2({
