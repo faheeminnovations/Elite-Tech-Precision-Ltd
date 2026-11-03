@@ -57,6 +57,9 @@ class CustomerRequest extends FormRequest
             'category' => ['nullable', 'string', 'in:chain,new'],
             'region' => ['nullable', 'string', 'max:100'],
             'sites' => ['nullable', 'string'],
+            'mailing_frequency' => ['nullable', 'string', 'in:daily,weekly,monthly,quarterly,yearly'],
+            'last_email_sent' => ['nullable', 'date'],
+            'next_email_due' => ['nullable', 'date'],
         ];
     }
 
