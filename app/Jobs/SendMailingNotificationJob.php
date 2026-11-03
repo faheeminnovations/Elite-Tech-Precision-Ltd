@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\Contract;
 use App\Models\Service;
+use App\Models\Customer;
 use App\Models\NotificationLog;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -13,6 +14,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ContractMailingNotification;
 use App\Mail\ServiceMailingNotification;
+use App\Mail\CustomerMailingNotification;
 use Carbon\Carbon;
 
 class SendMailingNotificationJob implements ShouldQueue
@@ -33,7 +35,10 @@ class SendMailingNotificationJob implements ShouldQueue
         $recipientEmail = null;
         $mailClass = null;
 
-        if ($this->type === 'contract' && $this->notifiable instanceof Contract) {
+        if ($this->type === 'customer' && $this->notifiable instanceof Customer) {
+            $recipientEmail = $this->notifiable->email;
+            $mailClass = CustomerMailingNotification::class;
+        } elseif ($this->type === 'contract' && $this->notifiable instanceof Contract) {
             $recipientEmail = $this->notifiable->customer_email ?? $this->notifiable->customer?->email;
             $mailClass = ContractMailingNotification::class;
         } elseif ($this->type === 'service' && $this->notifiable instanceof Service) {
@@ -92,10 +97,17 @@ class SendMailingNotificationJob implements ShouldQueue
 
     protected function logNotification(string $status, ?string $errorMessage = null): void
     {
+        $recipientEmail = null;
+        if ($this->type === 'customer') {
+            $recipientEmail = $this->notifiable->email;
+        } else {
+            $recipientEmail = $this->notifiable->customer_email ?? $this->notifiable->customer?->email;
+        }
+
         NotificationLog::create([
             'notifiable_type' => get_class($this->notifiable),
             'notifiable_id' => $this->notifiable->id,
-            'recipient_email' => $this->notifiable->customer_email ?? $this->notifiable->customer?->email,
+            'recipient_email' => $recipientEmail,
             'status' => $status,
             'error_message' => $errorMessage,
             'sent_at' => $status === 'sent' ? Carbon::now() : null,
