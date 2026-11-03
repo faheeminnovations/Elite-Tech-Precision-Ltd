@@ -42,64 +42,6 @@
             </div>
         @endif
 
-        <!-- Customer Add Modal -->
-        <div class="modal fade" id="addCustomerModal" tabindex="-1" aria-labelledby="addCustomerModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="addCustomerModalLabel">Add New Customer</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="quickCustomerForm">
-                            @csrf
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Customer Name <span class="required-indicator">*</span></label>
-                                    <input type="text" class="form-control" name="name" id="newCustomerName" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Email Address <span class="required-indicator">*</span></label>
-                                    <input type="email" class="form-control" name="email" id="newCustomerEmail" required>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label class="form-label">Sites</label>
-                                <div id="sitesContainer">
-                                    <div class="row mb-2 site-entry">
-                                        <div class="col-md-5">
-                                            <input type="text" class="form-control site-name" name="sites[0][name]" placeholder="Site name" required>
-                                        </div>
-                                        <div class="col-md-5">
-                                            <select class="form-select site-region" name="sites[0][region_id]" required>
-                                                <option value="">Select region</option>
-                                                @foreach($regions as $region)
-                                                    <option value="{{ $region->id }}">{{ $region->name }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                        <div class="col-md-2">
-                                            <button type="button" class="btn btn-danger btn-sm w-100" onclick="removeSiteEntry(this)" style="display: none;">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <button type="button" class="btn btn-outline-secondary btn-sm mt-2" onclick="addSiteEntry()">
-                                    <i class="bi bi-plus-circle"></i> Add Site
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-primary" onclick="addNewCustomer()">Add Customer</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- Wizard Steps Indicator -->
         <div class="wizard-steps mt-4">
             <div class="step active" data-step="1">
@@ -118,7 +60,7 @@
 
         <form method="POST" action="{{ route('contracts.store') }}" class="mt-4" id="contractForm" data-form-type="contract">
             @csrf
-            
+
             <!-- Step 1: Customer Form -->
             <div class="wizard-step-content active" data-step="1">
                 <div class="step-title">Step 1: Customer Information</div>
@@ -129,7 +71,7 @@
                             <select class="form-select" name="customer_name" id="customerName" required>
                                 <option value="">Select a customer</option>
                                 @foreach($customers as $customer)
-                                    <option value="{{ $customer->name }}" data-region="{{ $customer->region }}" data-sites="{{ json_encode($customer->sites ?? []) }}" data-email="{{ $customer->email }}" {{ old('customer_name') == $customer->name ? 'selected' : '' }}>
+                                    <option value="{{ $customer->name }}" data-region="{{ $customer->region }}" data-email="{{ $customer->email }}" {{ old('customer_name') == $customer->name ? 'selected' : '' }}>
                                         {{ $customer->name }} @if($customer->email)({{ $customer->email }})@endif
                                     </option>
                                 @endforeach
@@ -139,27 +81,6 @@
                             </button>
                         </div>
                         <div id="customer_name_error" class="text-danger mt-1" style="display: none; font-size: 12px;">Please select a customer name to proceed.</div>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Region</label>
-                        <select class="form-select" name="region_id" id="regionSelect">
-                            <option value="">Select region</option>
-                            @foreach($regions as $region)
-                                <option value="{{ $region->id }}" {{ old('region_id') == $region->id ? 'selected' : '' }}>{{ $region->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-md-12">
-                        <label class="form-label">Site <span class="text-muted" style="font-weight:400;">(Select site for this contract)</span></label>
-                        <select class="form-select" name="site_id" id="siteSelect" onchange="loadDoors()">
-                            <option value="">Select a customer first</option>
-                        </select>
-                    </div>
-                    <div class="col-md-12">
-                        <label class="form-label">Door / Location <span class="text-muted" style="font-weight:400;">(Optional - Select door for this contract)</span></label>
-                        <select class="form-select" name="door_id" id="doorSelect">
-                            <option value="">Select a site first</option>
-                        </select>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Customer Contact Email</label>
@@ -256,7 +177,7 @@
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Next PPM Due</label>
-                        <input class="form-control" type="date" name="next_ppm_due" value="{{ old('next_ppm_due') }}">
+                        <input class="form-control" type="date" name="next_ppm_due" value="{{ old('next_ppm_date') }}">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Job Reference</label>
@@ -273,9 +194,6 @@
     </div>
 
     <script>
-        // Customer data with site information
-        const customerMap = @json($customers->mapWithKeys(fn ($c) => [$c->id => ['n' => $c->name, 'e' => $c->email, 'r' => $c->region]]));
-        const customerSites = @json($customerSitesData);
         let currentStep = 1;
         const totalSteps = 3;
 
@@ -284,9 +202,6 @@
         const stepIndicators = document.querySelectorAll('.wizard-steps .step');
         const customerNameSelect = document.getElementById('customerName');
         const customerNameError = document.getElementById('customer_name_error');
-        const regionSelect = document.getElementById('regionSelect');
-        const siteSelect = document.getElementById('siteSelect');
-        const doorSelect = document.getElementById('doorSelect');
         const customerEmailInput = document.getElementById('customerEmail');
 
         function showStep(step) {
@@ -326,244 +241,6 @@
         function prevStep(current) {
             if (current > 1) {
                 showStep(current - 1);
-            }
-        }
-
-        let siteEntryCount = 1;
-
-        function addSiteEntry() {
-            const container = document.getElementById('sitesContainer');
-            const newEntry = document.createElement('div');
-            newEntry.className = 'row mb-2 site-entry';
-            newEntry.innerHTML = `
-                <div class="col-md-5">
-                    <input type="text" class="form-control site-name" name="sites[${siteEntryCount}][name]" placeholder="Site name" required>
-                </div>
-                <div class="col-md-5">
-                    <select class="form-select site-region" name="sites[${siteEntryCount}][region_id]" required>
-                        <option value="">Select region</option>
-                        @foreach($regions as $region)
-                            <option value="{{ $region->id }}">{{ $region->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <button type="button" class="btn btn-danger btn-sm w-100" onclick="removeSiteEntry(this)">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </div>
-            `;
-            container.appendChild(newEntry);
-            siteEntryCount++;
-
-            // Show remove button on first entry if there are multiple entries
-            const entries = container.querySelectorAll('.site-entry');
-            if (entries.length > 1) {
-                entries[0].querySelector('.btn-danger').style.display = 'block';
-            }
-        }
-
-        function removeSiteEntry(button) {
-            const container = document.getElementById('sitesContainer');
-            const entries = container.querySelectorAll('.site-entry');
-            
-            if (entries.length > 1) {
-                button.closest('.site-entry').remove();
-                
-                // Hide remove button on first entry if only one remains
-                const remainingEntries = container.querySelectorAll('.site-entry');
-                if (remainingEntries.length === 1) {
-                    remainingEntries[0].querySelector('.btn-danger').style.display = 'none';
-                }
-            }
-        }
-
-        function addNewCustomer() {
-            const form = document.getElementById('quickCustomerForm');
-            const formData = new FormData(form);
-
-            // Validate at least one site
-            const siteNames = form.querySelectorAll('.site-name');
-            let hasSite = false;
-            siteNames.forEach(input => {
-                if (input.value.trim()) hasSite = true;
-            });
-
-            if (!hasSite) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Site Required',
-                    text: 'Please add at least one site for the customer.'
-                });
-                return;
-            }
-
-            formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
-
-            fetch('{{ route("customers.quick-create") }}', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Add new customer to customerMap
-                    customerMap[data.customer.id] = {
-                        n: data.customer.name,
-                        e: data.customer.email
-                    };
-
-                    // Add sites to customerSites
-                    customerSites[data.customer.id] = data.customer.sites.map(s => ({
-                        id: s.id,
-                        name: s.site_name,
-                        region_id: s.region_id
-                    }));
-
-                    // Add new customer to select dropdown
-                    const option = document.createElement('option');
-                    option.value = data.customer.name;
-                    option.dataset.email = data.customer.email;
-                    option.text = data.customer.name + (data.customer.email ? ' (' + data.customer.email + ')' : '');
-                    option.selected = true;
-                    customerNameSelect.appendChild(option);
-
-                    // Update Select2
-                    $('#customerName').trigger('change');
-
-                    if (customerEmailInput && data.customer.email) customerEmailInput.value = data.customer.email;
-
-                    // Reset form and site entries
-                    form.reset();
-                    const container = document.getElementById('sitesContainer');
-                    container.innerHTML = `
-                        <div class="row mb-2 site-entry">
-                            <div class="col-md-5">
-                                <input type="text" class="form-control site-name" name="sites[0][name]" placeholder="Site name" required>
-                            </div>
-                            <div class="col-md-5">
-                                <select class="form-select site-region" name="sites[0][region_id]" required>
-                                    <option value="">Select region</option>
-                                    @foreach($regions as $region)
-                                        <option value="{{ $region->id }}">{{ $region->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <button type="button" class="btn btn-danger btn-sm w-100" onclick="removeSiteEntry(this)" style="display: none;">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                    siteEntryCount = 1;
-
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('addCustomerModal'));
-                    modal.hide();
-
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Customer Added',
-                        text: 'Customer has been added successfully!',
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: data.message || 'Unknown error occurred while adding customer'
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Error adding customer. Please try again.'
-                });
-            });
-        }
-
-        function updateSitesDropdown(customerName, regionId = null) {
-            const customer = Object.values(customerMap).find(c => c.n === customerName);
-            if (!customer) return;
-
-            const customerId = Object.keys(customerMap).find(key => customerMap[key].n === customerName);
-            const sites = customerSites[customerId] || [];
-
-            siteSelect.innerHTML = '<option value="">Select site</option>';
-            doorSelect.innerHTML = '<option value="">Select a site first</option>';
-
-            if (sites.length === 0) {
-                const option = document.createElement('option');
-                option.value = '';
-                option.text = 'No sites available for this customer. Add a site first.';
-                option.disabled = true;
-                siteSelect.appendChild(option);
-                return;
-            }
-
-            if (regionId) {
-                const filteredSites = sites.filter(s => String(s.region_id) === String(regionId));
-                if (filteredSites.length === 0) {
-                    const option = document.createElement('option');
-                    option.value = '';
-                    option.text = 'No sites available for this region';
-                    option.disabled = true;
-                    siteSelect.appendChild(option);
-                } else {
-                    filteredSites.forEach(site => {
-                        const option = document.createElement('option');
-                        option.value = site.id;
-                        option.text = site.name;
-                        siteSelect.appendChild(option);
-                    });
-                }
-            } else {
-                sites.forEach(site => {
-                    const option = document.createElement('option');
-                    option.value = site.id;
-                    option.text = site.name;
-                    siteSelect.appendChild(option);
-                });
-            }
-        }
-
-        function loadDoors() {
-            const siteId = siteSelect.value;
-            doorSelect.innerHTML = '<option value="">Select door (optional)</option>';
-
-            if (!siteId) {
-                return;
-            }
-
-            // Find the site and its doors
-            let siteDoors = [];
-            Object.values(customerSites).forEach(sites => {
-                const site = sites.find(s => s.id == siteId);
-                if (site && site.doors) {
-                    siteDoors = site.doors;
-                }
-            });
-
-            if (siteDoors.length === 0) {
-                const option = document.createElement('option');
-                option.value = '';
-                option.text = 'No doors available for this site';
-                option.disabled = true;
-                doorSelect.appendChild(option);
-            } else {
-                siteDoors.forEach(door => {
-                    const option = document.createElement('option');
-                    option.value = door.id;
-                    option.text = door.name;
-                    doorSelect.appendChild(option);
-                });
             }
         }
 
@@ -609,48 +286,16 @@
 
         $(document).ready(function() {
             $('#customerName').on('select2:select', function(e) {
-                const customerName = e.params.data.id;
-                const customerData = Object.values(customerMap).find(c => c.n === customerName);
-
-                if (customerData && customerEmailInput && customerData.e) {
-                    customerEmailInput.value = customerData.e;
-                }
-
-                // Auto-select customer's region
-                if (customerData && customerData.r) {
-                    for (let i = 0; i < regionSelect.options.length; i++) {
-                        if (regionSelect.options[i].text === customerData.r) {
-                            regionSelect.value = regionSelect.options[i].value;
-                            const regionId = regionSelect.value;
-                            updateSitesDropdown(customerName, regionId);
-                            break;
-                        }
-                    }
-                } else {
-                    regionSelect.value = '';
-                    updateSitesDropdown(customerName);
+                const selectedOption = e.params.data.element;
+                const customerEmail = $(selectedOption).data('email');
+                
+                if (customerEmailInput && customerEmail) {
+                    customerEmailInput.value = customerEmail;
                 }
             });
 
             $('#customerName').on('select2:clear', function(e) {
                 if (customerEmailInput) customerEmailInput.value = '';
-                if (regionSelect) regionSelect.value = '';
-                if (siteSelect) {
-                    siteSelect.innerHTML = '<option value="">Select a customer first</option>';
-                    siteSelect.selectedIndex = 0;
-                }
-                if (doorSelect) {
-                    doorSelect.innerHTML = '<option value="">Select a site first</option>';
-                    doorSelect.selectedIndex = 0;
-                }
-            });
-
-            $('#regionSelect').on('change', function() {
-                const customerName = customerNameSelect.value;
-                const regionId = $(this).val();
-                if (customerName) {
-                    updateSitesDropdown(customerName, regionId);
-                }
             });
 
             $('#customerName').select2({
