@@ -67,6 +67,13 @@ class CustomerController extends Controller
             );
         }
 
+        // Auto-calculate next_email_due if mailing_frequency set and next_email_due not provided
+        if (isset($validated['mailing_frequency']) && !empty($validated['mailing_frequency'])) {
+            if (!isset($validated['next_email_due']) || empty($validated['next_email_due'])) {
+                $validated['next_email_due'] = $this->calculateNextEmailDue($validated['mailing_frequency']);
+            }
+        }
+
         $customer = Customer::create($validated);
 
         // Send email notification for customer creation asynchronously
@@ -172,6 +179,13 @@ class CustomerController extends Controller
             );
         }
 
+        // Auto-calculate next_email_due if mailing_frequency changed and next_email_due not provided
+        if (isset($validated['mailing_frequency']) && $validated['mailing_frequency'] !== $customer->mailing_frequency) {
+            if (!isset($validated['next_email_due']) || empty($validated['next_email_due'])) {
+                $validated['next_email_due'] = $this->calculateNextEmailDue($validated['mailing_frequency']);
+            }
+        }
+
         $oldStatus = $customer->status;
         $newStatus = $validated['status'] ?? $customer->status;
 
@@ -200,6 +214,26 @@ class CustomerController extends Controller
         }
 
         return redirect()->route('customers.index')->with('success', 'Customer updated successfully.');
+    }
+
+    private function calculateNextEmailDue($frequency)
+    {
+        $today = now();
+        
+        switch($frequency) {
+            case 'daily':
+                return $today->addDay();
+            case 'weekly':
+                return $today->addWeek();
+            case 'monthly':
+                return $today->addMonth();
+            case 'quarterly':
+                return $today->addMonths(3);
+            case 'yearly':
+                return $today->addYear();
+            default:
+                return null;
+        }
     }
 
     public function destroy(Customer $customer): RedirectResponse
