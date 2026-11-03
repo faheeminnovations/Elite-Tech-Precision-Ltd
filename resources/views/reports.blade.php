@@ -91,7 +91,6 @@
             'expiring-contracts' => ['icon' => 'bi-hourglass-split', 'title' => 'Contracts Expiring Soon', 'desc' => 'Renewal and retention planning.'],
             'customers-no-contract' => ['icon' => 'bi-person-x', 'title' => 'Customers Without Contract', 'desc' => 'Sales opportunity and follow-up list.'],
             'customer-responses' => ['icon' => 'bi-envelope-check', 'title' => 'Customer Responses', 'desc' => 'Accepted and declined PPM responses.'],
-            'service-history' => ['icon' => 'bi-clipboard2-check', 'title' => 'Full Service History', 'desc' => 'Completed jobs, reports and recommendations.'],
             'service-jobs' => ['icon' => 'bi-wrench-adjustable', 'title' => 'Service Jobs', 'desc' => 'Scheduled, active and completed service work.'],
             'contracts-register' => ['icon' => 'bi-file-earmark-text', 'title' => 'Contracts Register', 'desc' => 'Contract status, expiry, frequency and next PPM.'],
             'customer-register' => ['icon' => 'bi-people', 'title' => 'Customer Register', 'desc' => 'Customer contacts, addresses and job references.'],

@@ -56,6 +56,14 @@ class Customer extends Model
         'updated' => 'Updated',
     ];
 
+    public const MAILING_FREQUENCIES = [
+        'daily' => 'Daily',
+        'weekly' => 'Weekly',
+        'monthly' => 'Monthly',
+        'quarterly' => 'Quarterly',
+        'yearly' => 'Yearly',
+    ];
+
     protected $fillable = [
         'name',
         'job_ref',
@@ -68,11 +76,38 @@ class Customer extends Model
         'status',
         'category',
         'region',
+        'sites',
+        'mailing_frequency',
+        'last_email_sent',
+        'next_email_due',
     ];
 
     protected $casts = [
         'completion_date' => 'date',
+        'sites' => 'array',
+        'last_email_sent' => 'date',
+        'next_email_due' => 'date',
     ];
+
+    public function customerSites()
+    {
+        return $this->hasMany(CustomerSite::class);
+    }
+
+    public function doors()
+    {
+        return $this->hasManyThrough(Door::class, CustomerSite::class);
+    }
+
+    public function contracts()
+    {
+        return $this->hasMany(Contract::class, 'customer_name', 'name');
+    }
+
+    public function services()
+    {
+        return $this->hasMany(Service::class, 'customer_name', 'name');
+    }
 
     public function scopeFilter(Builder $query, array $filters): Builder
     {

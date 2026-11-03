@@ -34,6 +34,14 @@ class Contract extends Model
         '6 monthly' => '6 Monthly',
     ];
 
+    public const MAILING_FREQUENCIES = [
+        'daily' => 'Daily',
+        'weekly' => 'Weekly',
+        'monthly' => 'Monthly',
+        'quarterly' => 'Quarterly',
+        'yearly' => 'Yearly',
+    ];
+
     protected $fillable = [
         'contract_available',
         'customer_name',
@@ -51,6 +59,12 @@ class Contract extends Model
         'customer_email',
         'status',
         'notes',
+        'mailing_frequency',
+        'last_email_sent',
+        'next_email_due',
+        'region_id',
+        'site_id',
+        'door_id',
     ];
 
     protected $casts = [
@@ -58,7 +72,29 @@ class Contract extends Model
         'expiry_date' => 'date',
         'last_ppm_date' => 'date',
         'next_ppm_due' => 'date',
+        'last_email_sent' => 'date',
+        'next_email_due' => 'date',
     ];
+
+    public function region()
+    {
+        return $this->belongsTo(Region::class);
+    }
+
+    public function site()
+    {
+        return $this->belongsTo(CustomerSite::class, 'site_id');
+    }
+
+    public function door()
+    {
+        return $this->belongsTo(Door::class);
+    }
+
+    public function notificationLogs()
+    {
+        return $this->morphMany(NotificationLog::class, 'notifiable');
+    }
 
     public function scopeFilter(Builder $query, array $filters): Builder
     {

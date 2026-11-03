@@ -26,7 +26,7 @@ class ContractRequest extends FormRequest
             'customer_name' => ['required', 'string', 'max:255'],
             'job_ref' => ['nullable', 'string', 'max:100'],
             'area' => ['nullable', 'string', 'max:100'],
-            'site_name' => ['nullable', 'string', 'max:255'],
+            'site_name' => ['nullable', 'string', 'max:500'],
             'contract_ref' => $contractRefRule,
             'start_date' => ['nullable', 'date'],
             'expiry_date' => ['nullable', 'date'],
@@ -38,6 +38,9 @@ class ContractRequest extends FormRequest
             'customer_email' => ['nullable', 'email'],
             'status' => ['nullable', 'string', 'in:upcoming,active,expiring,expired,cancelled,overdue'],
             'notes' => ['nullable', 'string'],
+            'region' => ['nullable', 'string', 'max:100'],
+            'mailing_frequency' => ['nullable', 'string', 'in:daily,weekly,monthly,quarterly,yearly'],
+            'next_email_due' => ['nullable', 'date'],
         ];
     }
 
@@ -84,11 +87,29 @@ class ContractRequest extends FormRequest
         $validator->after(function ($validator) {
             $startDate = $this->input('start_date');
             $expiryDate = $this->input('expiry_date');
-            
+
             // Only validate date relationship if both dates are provided
             if ($startDate && $expiryDate) {
                 if (strtotime($expiryDate) <= strtotime($startDate)) {
                     $validator->errors()->add('expiry_date', 'Expiry date must be after start date.');
+                }
+            }
+
+            // Validate that site belongs to the selected customer
+            $customerId = $this->input('customer_name');
+            $siteId = $this->input('site_id');
+            $regionId = $this->input('region_id');
+
+            if ($siteId && $customerId) {
+                $customer = \App\Models\Customer::where('name', $customerId)->first();
+                if ($customer) {
+                    $site = \App\Models\CustomerSite::find($siteId);
+                    if (!$site || $site->customer_id !== $customer->id) {
+                        $validator->errors()->add('site_id', 'Selected site does not belong to this customer.');
+                    }
+                    if ($regionId && $site && $site->region_id != $regionId) {
+                        $validator->errors()->add('site_id', 'Selected site does not belong to the selected region.');
+                    }
                 }
             }
         });

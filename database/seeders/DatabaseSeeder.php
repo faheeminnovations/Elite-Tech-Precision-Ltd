@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use App\Models\EmailNotificationSetting;
+use App\Models\Customer;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 
@@ -18,7 +19,7 @@ class DatabaseSeeder extends Seeder
 
         // Admin user
         $admin = User::firstOrCreate(
-            ['email' => 'Info@elitedoors.ie'],
+            ['email' => 'sales@elitedoors.ie'],
             [
                 'name' => 'Awais Ho',
                 'password' => bcrypt('awais@8080'),
@@ -40,6 +41,62 @@ class DatabaseSeeder extends Seeder
 
         // Email notification settings
         $this->seedEmailNotificationSettings();
+        
+        // Seed sample customers with regions and sites
+        $this->seedCustomers();
+    }
+
+    private function seedCustomers(): void
+    {
+        $customers = [
+            [
+                'name' => 'Dublin City Centre',
+                'email' => 'dublin@example.com',
+                'region' => 'Dublin',
+                'category' => 'chain',
+                'sites' => ['Grafton Street', 'Henry Street', 'O\'Connell Street'],
+                'status' => 'active',
+            ],
+            [
+                'name' => 'Cork Business Park',
+                'email' => 'cork@example.com',
+                'region' => 'Cork',
+                'category' => 'chain',
+                'sites' => ['Cork Airport', 'City Hall', 'Patrick Street'],
+                'status' => 'active',
+            ],
+            [
+                'name' => 'Galway Retail',
+                'email' => 'galway@example.com',
+                'region' => 'Galway',
+                'category' => 'new',
+                'sites' => ['Shop Street', 'Eyre Square'],
+                'status' => 'new',
+            ],
+            [
+                'name' => 'Limerick Industrial',
+                'email' => 'limerick@example.com',
+                'region' => 'Limerick',
+                'category' => 'chain',
+                'sites' => ['Raheen', 'Castletroy'],
+                'status' => 'active',
+            ],
+            [
+                'name' => 'Waterford Plaza',
+                'email' => 'waterford@example.com',
+                'region' => 'Waterford',
+                'category' => 'new',
+                'sites' => ['City Centre'],
+                'status' => 'new',
+            ],
+        ];
+
+        foreach ($customers as $customerData) {
+            Customer::firstOrCreate(
+                ['email' => $customerData['email']],
+                $customerData
+            );
+        }
     }
 
     private function seedEmailNotificationSettings(): void

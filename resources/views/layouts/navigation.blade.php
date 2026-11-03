@@ -5,17 +5,23 @@
 
 <div class="nav-group">
     <div class="nav-label">Operations</div>
-    <!-- <a class="nav-link eliteflow {{ request()->routeIs('customers.*') ? 'active' : '' }}" href="{{ route('customers.index') }}">
+    <a class="nav-link eliteflow {{ request()->routeIs('customers.*') ? 'active' : '' }}" href="{{ route('customers.index') }}">
         <i class="bi bi-people-fill"></i>Customers
         <span class="badge-count">{{ \App\Models\Customer::count() }}</span>
-    </a> -->
+    </a>
+    <a class="nav-link eliteflow {{ request()->routeIs('sites.*') ? 'active' : '' }}" href="{{ route('sites.index') }}">
+        <i class="bi bi-geo-alt-fill"></i>Sites
+        <span class="badge-count">{{ \App\Models\CustomerSite::count() }}</span>
+    </a>
+    <a class="nav-link eliteflow {{ request()->routeIs('doors.*') ? 'active' : '' }}" href="{{ route('doors.index') }}">
+        <i class="bi bi-door-closed-fill"></i>Doors
+        <span class="badge-count">{{ \App\Models\Door::count() }}</span>
+    </a>
     <a class="nav-link eliteflow {{ request()->routeIs('contracts.*') ? 'active' : '' }}" href="{{ route('contracts.index') }}">
         <i class="bi bi-file-earmark-text-fill"></i>Contracts & PPM
         <span class="badge-count">{{ \App\Models\Contract::count() }}</span>
     </a>
-    <a class="nav-link eliteflow {{ request()->routeIs('service-history') ? 'active' : '' }}" href="{{ route('service-history') }}"><i class="bi bi-clipboard2-check-fill"></i>Service History</a>
     <!-- <a class="nav-link eliteflow {{ request()->routeIs('services.*') ? 'active' : '' }}" href="{{ route('services.index') }}"><i class="bi bi-wrench-adjustable-circle-fill"></i>Service CRUD</a> -->
-    <a class="nav-link eliteflow {{ request()->routeIs('data-entry') ? 'active' : '' }}" href="{{ route('data-entry') }}"><i class="bi bi-pencil-square"></i>Manual Data Entry</a>
     <a class="nav-link eliteflow {{ request()->routeIs('responses.*') ? 'active' : '' }}" href="{{ route('responses.index') }}">
         <i class="bi bi-envelope-check-fill"></i>Customer Responses
         <span class="badge-count">{{ \App\Models\Response::where('response', 'awaiting')->count() }}</span>

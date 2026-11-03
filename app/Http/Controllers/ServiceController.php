@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ServiceRequest;
 use App\Mail\StatusUpdateMail;
 use App\Models\Customer;
+use App\Models\Region;
 use App\Models\Service;
 use App\Models\User;
 use App\Services\ActivityLogger;
@@ -43,30 +44,12 @@ class ServiceController extends Controller
         ]);
     }
 
-    public function history(Request $request)
-    {
-        $filters = $request->only(['search', 'engineer', 'engineer_id', 'area', 'date_from', 'date_to']);
-
-        $services = Service::query()
-            ->with('engineer')
-            ->completed()
-            ->filter($filters)
-            ->latest('visit_date')
-            ->paginate(15)
-            ->withQueryString();
-
-        return view('service-history', [
-            'services' => $services,
-            'filters' => $filters,
-            'engineers' => $this->engineerOptions(),
-        ]);
-    }
-
-    public function create()
+    public function create(): View
     {
         return view('services.create', [
             'engineers' => $this->engineerOptions(),
-            'customers' => Customer::orderBy('name')->select(['name', 'email', 'region'])->get(),
+            'customers' => Customer::with(['customerSites', 'customerSites.doors'])->orderBy('name')->get(),
+            'regions' => Region::orderBy('name')->get(),
         ]);
     }
 
@@ -78,6 +61,11 @@ class ServiceController extends Controller
         $validated['service_type'] = $validated['service_type'] ?? 'PPM';
         $validated['status'] = $validated['status'] ?? 'scheduled';
         $validated['remedial_required'] = $validated['remedial_required'] ?? 'no';
+
+        // Calculate next email due date if mailing frequency is set but next_email_due is not provided
+        if (!empty($validated['mailing_frequency']) && empty($validated['next_email_due'])) {
+            $validated['next_email_due'] = $this->calculateNextEmailDate($validated['mailing_frequency']);
+        }
 
         $validated = $this->applyEngineerAssignment($validated);
         $validated['created_by'] = Auth::id();
@@ -122,7 +110,8 @@ class ServiceController extends Controller
         return view('services.edit', [
             'service' => $service,
             'engineers' => $this->engineerOptions(),
-            'customers' => Customer::orderBy('name')->select(['name', 'email', 'region'])->get(),
+            'customers' => Customer::with(['customerSites', 'customerSites.doors'])->orderBy('name')->get(),
+            'regions' => Region::orderBy('name')->get(),
         ]);
     }
 
@@ -139,6 +128,11 @@ class ServiceController extends Controller
         }
         if (!isset($validated['remedial_required']) || $validated['remedial_required'] === '') {
             $validated['remedial_required'] = $service->remedial_required ?? 'no';
+        }
+
+        // Calculate next email due date if mailing frequency is set but next_email_due is not provided
+        if (!empty($validated['mailing_frequency']) && empty($validated['next_email_due'])) {
+            $validated['next_email_due'] = $this->calculateNextEmailDate($validated['mailing_frequency']);
         }
 
         $oldStatus = $service->status;
@@ -226,6 +220,18 @@ class ServiceController extends Controller
         }
 
         return $validated;
+    }
+
+    private function calculateNextEmailDate(string $frequency): ?\Carbon\Carbon
+    {
+        return match($frequency) {
+            'daily' => now()->addDay(),
+            'weekly' => now()->addWeek(),
+            'monthly' => now()->addMonth(),
+            'quarterly' => now()->addMonths(3),
+            'yearly' => now()->addYear(),
+            default => null,
+        };
     }
 
     private function engineerOptions()

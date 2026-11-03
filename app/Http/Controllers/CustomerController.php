@@ -6,6 +6,8 @@ use App\Http\Requests\CustomerRequest;
 use App\Mail\StatusUpdateMail;
 use App\Models\Contract;
 use App\Models\Customer;
+use App\Models\CustomerSite;
+use App\Models\Region;
 use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -56,6 +58,15 @@ class CustomerController extends Controller
     {
         $validated = $request->validated();
 
+        // Get or create region
+        $region = null;
+        if (!empty($validated['region'])) {
+            $region = Region::firstOrCreate(
+                ['name' => $validated['region']],
+                ['name' => $validated['region']]
+            );
+        }
+
         $customer = Customer::create($validated);
 
         // Send email notification for customer creation asynchronously
@@ -79,13 +90,45 @@ class CustomerController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['nullable', 'email', 'max:255', 'unique:customers,email'],
+            'email' => ['required', 'email', 'max:255'],
             'region' => ['nullable', 'string', 'max:100'],
-            'phone' => ['nullable', 'string', 'max:50', 'regex:/^[0-9+\-\s()]*$/'],
+            'phone' => ['nullable', 'string', 'max:50'],
             'category' => ['nullable', 'string', 'in:new,chain'],
+            'sites' => ['nullable', 'array'],
+            'sites.*.name' => ['required', 'string', 'max:255'],
+            'sites.*.region_id' => ['required', 'exists:regions,id'],
         ]);
 
+        // Get or create region from legacy field
+        $region = null;
+        if (!empty($validated['region'])) {
+            $region = Region::firstOrCreate(
+                ['name' => $validated['region']],
+                ['name' => $validated['region']]
+            );
+        }
+
+        // Remove sites from validated data before creating customer
+        $sitesData = $validated['sites'] ?? [];
+        unset($validated['sites']);
+
         $customer = Customer::create($validated);
+
+        // Create customer sites from the sites array
+        if (!empty($sitesData)) {
+            foreach ($sitesData as $siteData) {
+                CustomerSite::create([
+                    'customer_id' => $customer->id,
+                    'region_id' => $siteData['region_id'],
+                    'site_name' => $siteData['name'],
+                    'address' => $customer->address ?? null,
+                    'status' => 'active',
+                ]);
+            }
+        }
+
+        // Load customer sites for response
+        $customer->load('customerSites');
 
         // Send email notification for customer creation asynchronously
         $currentUser = auth()->user();
@@ -97,10 +140,12 @@ class CustomerController extends Controller
             'success' => true,
             'message' => 'Customer added successfully.',
             'customer' => [
+                'id' => $customer->id,
                 'name' => $customer->name,
                 'email' => $customer->email,
                 'region' => $customer->region,
-            ]
+                'sites' => $customer->customerSites->toArray(),
+            ],
         ]);
     }
 
@@ -117,6 +162,15 @@ class CustomerController extends Controller
     public function update(CustomerRequest $request, Customer $customer)
     {
         $validated = $request->validated();
+
+        // Get or create region
+        $region = null;
+        if (!empty($validated['region'])) {
+            $region = Region::firstOrCreate(
+                ['name' => $validated['region']],
+                ['name' => $validated['region']]
+            );
+        }
 
         $oldStatus = $customer->status;
         $newStatus = $validated['status'] ?? $customer->status;

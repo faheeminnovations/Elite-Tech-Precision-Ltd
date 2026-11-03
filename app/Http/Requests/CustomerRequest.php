@@ -56,6 +56,7 @@ class CustomerRequest extends FormRequest
             'status' => ['nullable', 'string', 'max:50'],
             'category' => ['nullable', 'string', 'in:chain,new'],
             'region' => ['nullable', 'string', 'max:100'],
+            'sites' => ['nullable', 'string'],
         ];
     }
 
